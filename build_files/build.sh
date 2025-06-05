@@ -15,19 +15,13 @@ unzip /tmp/colloid.zip -d /tmp
 export DEBIAN_FRONTEND=noninteractive
 export HOME=/tmp/build-home # Safety for any script part trying to write to $HOME
 mkdir -p $HOME
-mkdir -p /root/.gnupg # For GPG if its errors reappear
+mkdir -p /root/.config /root/.local/share/themes /root/.themes /root/.gnupg # For GPG and other potential user-dir needs if HOME is ignored
 
-echo "Enabling script tracing for Colloid theme installation..."
-set -x
-
-# Install Colloid theme system-wide for dark and light variants
-echo "Installing Colloid Dark theme system-wide..."
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -n Colloid -t gtk3 gtk4 gnome-shell -c dark
-echo "Installing Colloid Light theme system-wide..."
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -n Colloid -t gtk3 gtk4 gnome-shell -c default
-
-echo "Disabling script tracing..."
-set +x
+# Install Colloid theme system-wide for dark and light variants, with internal script tracing
+echo "Installing Colloid Dark theme system-wide (with script tracing)..."
+bash -x /tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -n Colloid -t gtk3 gtk4 gnome-shell -c dark
+echo "Installing Colloid Light theme system-wide (with script tracing)..."
+bash -x /tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -n Colloid -t gtk3 gtk4 gnome-shell -c default
 
 # Clean up
 rm -rf /tmp/Colloid-gtk-theme-main /tmp/colloid.zip $HOME
