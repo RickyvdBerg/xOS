@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 
 set -oue pipefail
 
@@ -9,8 +9,7 @@ rpm-ostree install gtk-murrine-engine gtk2-engines kvantum qt5ct qt6ct \
 # Install Colloid from source
 curl -L https://github.com/vinceliuice/Colloid-gtk-theme/archive/refs/heads/master.zip -o /tmp/colloid.zip
 unzip /tmp/colloid.zip -d /tmp
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c dark -l
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c light -l
+# Install themes without libadwaita integration to avoid /root directory issues
 /tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c dark
 /tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c light
 
