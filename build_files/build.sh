@@ -27,9 +27,8 @@ rm -rf /tmp/Colloid-icon-theme
 
 # Install Dash to Dock GNOME Shell Extension
 echo "Installing Dash to Dock GNOME Shell Extension..."
-# Download extension directly from GNOME Extensions website
-EXTENSION_URL="https://extensions.gnome.org/download-extension/dash-to-dock@micxgx.gmail.com.shell-extension.zip?version_tag=21651"
-curl -L "$EXTENSION_URL" -o /tmp/dash-to-dock.zip
+# Download pre-built release from GitHub
+curl -L "https://github.com/micheleg/dash-to-dock/releases/download/extensions.gnome.org-v100/dash-to-dock@micxgx.gmail.com.zip" -o /tmp/dash-to-dock.zip
 mkdir -p /usr/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com
 unzip -q /tmp/dash-to-dock.zip -d /usr/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com
 rm -f /tmp/dash-to-dock.zip
