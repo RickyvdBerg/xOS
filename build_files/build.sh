@@ -4,7 +4,7 @@ set -oue pipefail
 
 # Install dependencies
 rpm-ostree install gtk-murrine-engine gtk2-engines kvantum qt5ct qt6ct \
-    gnome-tweaks git gnome-themes-extra sassc
+    gnome-tweaks git gnome-themes-extra sassc curl wget unzip
 
 # Install Colloid from source
 curl -L https://github.com/vinceliuice/Colloid-gtk-theme/archive/refs/heads/master.zip -o /tmp/colloid.zip
@@ -15,25 +15,63 @@ unzip /tmp/colloid.zip -d /tmp
 
 rm -rf /tmp/Colloid-gtk-theme-main /tmp/colloid.zip
 
-# # Install Colloid Icon Theme from source
-# echo "Installing Colloid Icon Theme..."
-# if git clone --depth 1 https://github.com/vinceliuice/Colloid-icon-theme.git /tmp/Colloid-icon-theme; then
-#     (cd /tmp/Colloid-icon-theme && ./install.sh -d /usr/share/icons)
-#     echo "Colloid Icon Theme installed."
-# else
-#     echo "ERROR: Failed to clone Colloid Icon Theme repository."
-# fi
-# rm -rf /tmp/Colloid-icon-theme
+# Install Colloid Icon Theme from source
+echo "Installing Colloid Icon Theme..."
+if git clone --depth 1 https://github.com/vinceliuice/Colloid-icon-theme.git /tmp/Colloid-icon-theme; then
+    (cd /tmp/Colloid-icon-theme && ./install.sh -d /usr/share/icons)
+    echo "Colloid Icon Theme installed."
+else
+    echo "ERROR: Failed to clone Colloid Icon Theme repository."
+fi
+rm -rf /tmp/Colloid-icon-theme
 
-# # Install Dash to Panel GNOME Shell Extension
-# echo "Installing Dash to Panel GNOME Shell Extension..."
-# if git clone --depth 1 https://github.com/home-sweet-gnome/dash-to-panel.git /tmp/dash-to-panel; then
-#     (cd /tmp/dash-to-panel && make install INSTALL_PATH=/usr/share/gnome-shell/extensions GLIB_SCHEMAS_INSTALL_DIR=/usr/share/glib-2.0/schemas)
-#     echo "Dash to Panel installed."
-# else
-#     echo "ERROR: Failed to clone Dash to Panel repository."
-# fi
-# rm -rf /tmp/dash-to-panel
+# Install Dash to Panel GNOME Shell Extension
+echo "Installing Dash to Panel GNOME Shell Extension..."
+if git clone --depth 1 https://github.com/home-sweet-gnome/dash-to-panel.git /tmp/dash-to-panel; then
+    (cd /tmp/dash-to-panel && make install INSTALL_PATH=/usr/share/gnome-shell/extensions GLIB_SCHEMAS_INSTALL_DIR=/usr/share/glib-2.0/schemas)
+    echo "Dash to Panel installed."
+else
+    echo "ERROR: Failed to clone Dash to Panel repository."
+fi
+rm -rf /tmp/dash-to-panel
+
+# Install San Francisco Pro fonts (macOS-like)
+echo "Installing San Francisco Pro fonts..."
+mkdir -p /usr/share/fonts/sf-pro
+curl -L "https://github.com/sahibjotsaggu/San-Francisco-Pro-Fonts/archive/master.zip" -o /tmp/sf-fonts.zip
+unzip -q /tmp/sf-fonts.zip -d /tmp
+cp /tmp/San-Francisco-Pro-Fonts-master/*.otf /usr/share/fonts/sf-pro/
+fc-cache -f -v
+rm -rf /tmp/sf-fonts.zip /tmp/San-Francisco-Pro-Fonts-master
+
+# Install Zen Browser
+echo "Installing Zen Browser..."
+ZEN_VERSION=$(curl -s https://api.github.com/repos/zen-browser/desktop/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+curl -L "https://github.com/zen-browser/desktop/releases/download/${ZEN_VERSION}/zen-linux-x86_64.tar.xz" -o /tmp/zen-browser.tar.xz
+tar -xf /tmp/zen-browser.tar.xz -C /tmp
+mkdir -p /usr/share/zen-browser
+cp -r /tmp/zen/* /usr/share/zen-browser/
+ln -sf /usr/share/zen-browser/zen-bin /usr/local/bin/zen-browser
+
+# Create Zen Browser desktop entry
+cat > /usr/share/applications/zen-browser.desktop << EOF
+[Desktop Entry]
+Version=1.0
+Name=Zen Browser
+Comment=Experience tranquillity while browsing the web without people tracking you!
+GenericName=Web Browser
+Keywords=Internet;WWW;Browser;Web;Explorer
+Exec=/usr/share/zen-browser/zen-bin %u
+Terminal=false
+X-MultipleArgs=false
+Type=Application
+Icon=/usr/share/zen-browser/browser/chrome/icons/default/default128.png
+Categories=Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/vnd.mozilla.xul+xml;application/rss+xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;video/webm;application/x-xpinstall;
+StartupNotify=true
+EOF
+
+rm -rf /tmp/zen-browser.tar.xz /tmp/zen
 
 ### Install packages
 
@@ -57,41 +95,98 @@ rm -rf /tmp/Colloid-gtk-theme-main /tmp/colloid.zip
 systemctl enable podman.socket
 
 
-# ### Apply System-wide GNOME Settings via GSchema overrides
-# echo "Applying GSettings via GSchema overrides..."
-# OVERRIDE_FILE="/usr/share/glib-2.0/schemas/90_xos-defaults.gschema.override"
-# mkdir -p "$(dirname "${OVERRIDE_FILE}")"
-# cat > "${OVERRIDE_FILE}" << EOF
-# [org.gnome.desktop.interface]
-# gtk-theme='Colloid-Dark'
-# icon-theme='Colloid-Dark'
+### Apply System-wide GNOME Settings via GSchema overrides
+echo "Applying GSettings via GSchema overrides..."
+OVERRIDE_FILE="/usr/share/glib-2.0/schemas/90_xos-defaults.gschema.override"
+mkdir -p "$(dirname "${OVERRIDE_FILE}")"
+cat > "${OVERRIDE_FILE}" << EOF
+[org.gnome.desktop.interface]
+gtk-theme='Colloid-Dark'
+icon-theme='Colloid-Dark'
+font-name='SF Pro Display 11'
+document-font-name='SF Pro Display 11'
+monospace-font-name='SF Mono 10'
+cursor-theme='Adwaita'
+clock-show-weekday=true
+show-battery-percentage=true
+enable-animations=true
 
-# [org.gnome.desktop.wm.preferences]
-# button-layout='close,minimize,maximize:'
+[org.gnome.desktop.wm.preferences]
+button-layout='close,minimize,maximize:'
+titlebar-font='SF Pro Display Bold 11'
 
-# [org.gnome.shell]
-# enabled-extensions=['dash-to-panel@jderose9.github.com']
-# favorite-apps=['firefox.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'org.gnome.Software.desktop']
+[org.gnome.shell]
+enabled-extensions=['dash-to-panel@jderose9.github.com']
+favorite-apps=['zen-browser.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'org.gnome.Software.desktop']
 
-# [org.gnome.shell.extensions.dash-to-panel]
-# panel-position='BOTTOM'
-# panel-size=48
-# panel-length=100
-# appicon-margin=4
-# appicon-padding=4
-# running-indicator-style='DOTS'
-# show-showapps-button=true
-# translucent-mode='ADAPTIVE'
-# intellihide=false
-# animate-show-apps=false
-# dot-style-focused='DOTS'
-# dot-style-unfocused='DOTS'
-# EOF
+[org.gnome.shell.extensions.dash-to-panel]
+panel-position='BOTTOM'
+panel-size=48
+panel-length=100
+appicon-margin=4
+appicon-padding=4
+running-indicator-style='DOTS'
+show-showapps-button=true
+showapps-button-position='RIGHT'
+translucent-mode='ADAPTIVE'
+intellihide=false
+animate-show-apps=false
+dot-style-focused='DOTS'
+dot-style-unfocused='DOTS'
+show-favorites=true
+show-running=true
+group-apps=true
+isolate-workspaces=false
+isolate-monitors=false
+click-action='CYCLE'
+scroll-icon-action='CYCLE_WINDOWS'
+scroll-panel-action='NOTHING'
+hot-keys=true
+window-preview-title-position='TOP'
+window-preview-show-title=true
+window-preview-fixed-x=false
+window-preview-fixed-y=false
+enter-peek-mode-timeout=500
+leave-peek-mode-timeout=500
+peek-mode-opacity=40
+desktop-line-use-custom-color=false
+panel-element-positions='{"0":[{"element":"showAppsButton","visible":true,"position":"stackedTL"},{"element":"activitiesButton","visible":false,"position":"stackedTL"},{"element":"leftBox","visible":true,"position":"stackedTL"},{"element":"taskbar","visible":true,"position":"stackedTL"},{"element":"centerBox","visible":true,"position":"stackedBR"},{"element":"rightBox","visible":true,"position":"stackedBR"},{"element":"dateMenu","visible":true,"position":"stackedBR"},{"element":"systemMenu","visible":true,"position":"stackedBR"},{"element":"desktopButton","visible":false,"position":"stackedBR"}]}'
 
-# # Recompile GSchema to apply the overrides
-# if command -v glib-compile-schemas &> /dev/null; then
-#     echo "Compiling GSettings schemas..."
-#     glib-compile-schemas /usr/share/glib-2.0/schemas/
-# else
-#     echo "WARNING: glib-compile-schemas command not found. System-wide GSettings might not be applied correctly."
-# fi
+[org.gnome.desktop.background]
+picture-options='zoom'
+primary-color='#000000'
+secondary-color='#000000'
+
+[org.gnome.desktop.screensaver]
+picture-options='zoom'
+primary-color='#000000'
+secondary-color='#000000'
+
+[org.gnome.mutter]
+center-new-windows=true
+dynamic-workspaces=true
+
+[org.gnome.shell.app-switcher]
+current-workspace-only=false
+
+[org.gnome.desktop.wm.keybindings]
+switch-applications=['<Alt>Tab']
+switch-applications-backward=['<Shift><Alt>Tab']
+switch-windows=['<Super>Tab']
+switch-windows-backward=['<Shift><Super>Tab']
+close=['<Super>q']
+minimize=['<Super>m']
+toggle-fullscreen=['<Super>f']
+
+[org.gnome.settings-daemon.plugins.media-keys]
+home=['<Super>e']
+www=['<Super>b']
+EOF
+
+# Recompile GSchema to apply the overrides
+if command -v glib-compile-schemas &> /dev/null; then
+    echo "Compiling GSettings schemas..."
+    glib-compile-schemas /usr/share/glib-2.0/schemas/
+else
+    echo "WARNING: glib-compile-schemas command not found. System-wide GSettings might not be applied correctly."
+fi
