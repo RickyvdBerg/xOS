@@ -25,17 +25,15 @@ else
 fi
 rm -rf /tmp/Colloid-icon-theme
 
-# Install Dash to Panel GNOME Shell Extension
-echo "Installing Dash to Panel GNOME Shell Extension..."
-if git clone --depth 1 https://github.com/home-sweet-gnome/dash-to-panel.git /tmp/dash-to-panel; then
-    # Create necessary directory structure to avoid mkdir errors
-    mkdir -p /root/.local/share/gnome-shell/extensions
-    (cd /tmp/dash-to-panel && make install INSTALL_PATH=/usr/share/gnome-shell/extensions GLIB_SCHEMAS_INSTALL_DIR=/usr/share/glib-2.0/schemas)
-    echo "Dash to Panel installed."
+# Install Dash to Dock GNOME Shell Extension
+echo "Installing Dash to Dock GNOME Shell Extension..."
+if git clone --depth 1 https://github.com/micheleg/dash-to-dock.git /tmp/dash-to-dock; then
+    (cd /tmp/dash-to-dock && make install INSTALL_PATH=/usr/share/gnome-shell/extensions GLIB_SCHEMAS_INSTALL_DIR=/usr/share/glib-2.0/schemas)
+    echo "Dash to Dock installed."
 else
-    echo "ERROR: Failed to clone Dash to Panel repository."
+    echo "ERROR: Failed to clone Dash to Dock repository."
 fi
-rm -rf /tmp/dash-to-panel
+rm -rf /tmp/dash-to-dock
 
 # Install San Francisco Pro fonts (macOS-like)
 echo "Installing San Francisco Pro fonts..."
@@ -118,41 +116,33 @@ button-layout='close,minimize,maximize:'
 titlebar-font='SF Pro Display Bold 11'
 
 [org.gnome.shell]
-enabled-extensions=['dash-to-panel@jderose9.github.com']
+enabled-extensions=['dash-to-dock@micxgx.gmail.com']
 favorite-apps=['zen-browser.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'org.gnome.Software.desktop']
 
-[org.gnome.shell.extensions.dash-to-panel]
-panel-position='BOTTOM'
-panel-size=48
-panel-length=100
-appicon-margin=4
-appicon-padding=4
-running-indicator-style='DOTS'
-show-showapps-button=true
-showapps-button-position='RIGHT'
-translucent-mode='ADAPTIVE'
-intellihide=false
-animate-show-apps=false
-dot-style-focused='DOTS'
-dot-style-unfocused='DOTS'
+[org.gnome.shell.extensions.dash-to-dock]
+dock-position='BOTTOM'
+dock-fixed=false
+intellihide=true
+intellihide-mode='FOCUS_APPLICATION_WINDOWS'
+autohide=true
+autohide-in-fullscreen=false
+extend-height=false
+height-fraction=0.9
+dash-max-icon-size=48
+icon-size-fixed=false
 show-favorites=true
 show-running=true
-group-apps=true
-isolate-workspaces=false
-isolate-monitors=false
+show-apps-at-top=false
+show-show-apps-button=true
+animate-show-apps=false
 click-action='CYCLE'
-scroll-icon-action='CYCLE_WINDOWS'
-scroll-panel-action='NOTHING'
-hot-keys=true
-window-preview-title-position='TOP'
-window-preview-show-title=true
-window-preview-fixed-x=false
-window-preview-fixed-y=false
-enter-peek-mode-timeout=500
-leave-peek-mode-timeout=500
-peek-mode-opacity=40
-desktop-line-use-custom-color=false
-panel-element-positions='{"0":[{"element":"showAppsButton","visible":true,"position":"stackedTL"},{"element":"activitiesButton","visible":false,"position":"stackedTL"},{"element":"leftBox","visible":true,"position":"stackedTL"},{"element":"taskbar","visible":true,"position":"stackedTL"},{"element":"centerBox","visible":true,"position":"stackedBR"},{"element":"rightBox","visible":true,"position":"stackedBR"},{"element":"dateMenu","visible":true,"position":"stackedBR"},{"element":"systemMenu","visible":true,"position":"stackedBR"},{"element":"desktopButton","visible":false,"position":"stackedBR"}]}'
+scroll-action='CYCLE_WINDOWS'
+running-indicator-style='DOTS'
+apply-custom-theme=false
+custom-theme-shrink=false
+transparency-mode='FIXED'
+background-opacity=0.8
+custom-background-color=false
 
 [org.gnome.desktop.background]
 picture-options='zoom'
