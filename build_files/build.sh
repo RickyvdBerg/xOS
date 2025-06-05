@@ -27,13 +27,13 @@ rm -rf /tmp/Colloid-icon-theme
 
 # Install Dash to Dock GNOME Shell Extension
 echo "Installing Dash to Dock GNOME Shell Extension..."
-if git clone --depth 1 https://github.com/micheleg/dash-to-dock.git /tmp/dash-to-dock; then
-    (cd /tmp/dash-to-dock && make install INSTALL_PATH=/usr/share/gnome-shell/extensions GLIB_SCHEMAS_INSTALL_DIR=/usr/share/glib-2.0/schemas)
-    echo "Dash to Dock installed."
-else
-    echo "ERROR: Failed to clone Dash to Dock repository."
-fi
-rm -rf /tmp/dash-to-dock
+# Download extension directly from GNOME Extensions website
+EXTENSION_URL="https://extensions.gnome.org/download-extension/dash-to-dock@micxgx.gmail.com.shell-extension.zip?version_tag=21651"
+curl -L "$EXTENSION_URL" -o /tmp/dash-to-dock.zip
+mkdir -p /usr/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com
+unzip -q /tmp/dash-to-dock.zip -d /usr/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com
+rm -f /tmp/dash-to-dock.zip
+echo "Dash to Dock installed."
 
 # Install San Francisco Pro fonts (macOS-like)
 echo "Installing San Francisco Pro fonts..."
