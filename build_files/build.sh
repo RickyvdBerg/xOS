@@ -13,6 +13,8 @@ unzip /tmp/colloid.zip -d /tmp
 /tmp/Colloid-gtk-theme-master/install.sh -d /usr/share/themes -t all -c dark
 /tmp/Colloid-gtk-theme-master/install.sh -d /usr/share/themes -t all -c light
 
+rm -rf /tmp/Colloid-gtk-theme-master /tmp/colloid.zip
+
 ### Install packages
 
 # Packages can be installed from any enabled yum repo on the image.
