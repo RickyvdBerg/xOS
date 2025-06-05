@@ -4,33 +4,27 @@ set -oue pipefail
 
 # Install dependencies
 rpm-ostree install gtk-murrine-engine gtk2-engines kvantum qt5ct qt6ct \
-    gnome-tweaks git sassc ostree libappstream-glib
+    gnome-tweaks git sassc
 
-# Install Colloid theme and stylepak
-echo "Installing Colloid theme..."
+# Install Colloid from source
+echo "Installing Colloid GTK Theme..."
 curl -L https://github.com/vinceliuice/Colloid-gtk-theme/archive/refs/heads/master.zip -o /tmp/colloid.zip
 unzip /tmp/colloid.zip -d /tmp
 
-# Install stylepak for Flatpak theme support
-echo "Installing stylepak..."
-curl -L https://raw.githubusercontent.com/refi64/stylepak/master/stylepak -o /usr/local/bin/stylepak
-chmod +x /usr/local/bin/stylepak
+# Set environment for non-interactive installation
+export DEBIAN_FRONTEND=noninteractive
+export HOME=/tmp/build-home # Safety for any script part trying to write to $HOME
+mkdir -p $HOME
+mkdir -p /root/.gnupg # For GPG if its errors reappear
 
-# Install Colloid theme system-wide only (no user-specific installations)
-echo "Installing Colloid theme system-wide..."
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c dark
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c light
+# Install Colloid theme system-wide for dark and light variants
+echo "Installing Colloid Dark theme system-wide..."
+/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -n Colloid -c dark
+echo "Installing Colloid Light theme system-wide..."
+/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -n Colloid -c default
 
-# Set up Flatpak theme support using stylepak
-echo "Setting up Flatpak theme support..."
-# Create a minimal environment for stylepak
-export XDG_CONFIG_HOME=/usr/share/xdg-config
-mkdir -p $XDG_CONFIG_HOME/gtk-3.0 $XDG_CONFIG_HOME/gtk-4.0
-
-# Install Colloid-Dark theme for Flatpak system-wide
-/usr/local/bin/stylepak install-system Colloid-Dark || echo "Stylepak installation completed with warnings"
-
-rm -rf /tmp/Colloid-gtk-theme-main /tmp/colloid.zip
+# Clean up
+rm -rf /tmp/Colloid-gtk-theme-main /tmp/colloid.zip $HOME
 
 # Install Colloid Icon Theme from source
 echo "Installing Colloid Icon Theme..."
