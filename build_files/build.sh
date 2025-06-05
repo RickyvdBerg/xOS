@@ -54,12 +54,12 @@ flatpak remote-add --if-not-exists --system flathub https://dl.flathub.org/repo/
 flatpak install --system -y flathub app.zen_browser.zen
 
 # Create symbolic link for easier access
-mkdir -p /usr/local/bin
-cat > /usr/local/bin/zen-browser << 'EOF'
+# Create the wrapper script (skip if /usr/local/bin creation fails)
+cat > /usr/local/bin/zen-browser << 'EOF' || true
 #!/bin/bash
 flatpak run app.zen_browser.zen "$@"
 EOF
-chmod +x /usr/local/bin/zen-browser
+chmod +x /usr/local/bin/zen-browser 2>/dev/null || true
 
 echo "Zen Browser installed from Flathub."
 
