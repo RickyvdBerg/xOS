@@ -46,34 +46,20 @@ cp /tmp/San-Francisco-Pro-Fonts-master/*.otf /usr/share/fonts/sf-pro/
 fc-cache -f -v
 rm -rf /tmp/sf-fonts.zip /tmp/San-Francisco-Pro-Fonts-master
 
-# Install Zen Browser
-echo "Installing Zen Browser..."
-ZEN_VERSION=$(curl -s https://api.github.com/repos/zen-browser/desktop/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-curl -L "https://github.com/zen-browser/desktop/releases/download/${ZEN_VERSION}/zen-linux-x86_64.tar.xz" -o /tmp/zen-browser.tar.xz
-tar -xf /tmp/zen-browser.tar.xz -C /tmp
-mkdir -p /usr/share/zen-browser
-cp -r /tmp/zen/* /usr/share/zen-browser/
-ln -sf /usr/share/zen-browser/zen-bin /usr/local/bin/zen-browser
+# Install Zen Browser from Flathub
+echo "Installing Zen Browser from Flathub..."
+# Install Zen Browser as a system-wide Flatpak
+flatpak install --system -y flathub app.zen_browser.zen
 
-# Create Zen Browser desktop entry
-cat > /usr/share/applications/zen-browser.desktop << EOF
-[Desktop Entry]
-Version=1.0
-Name=Zen Browser
-Comment=Experience tranquillity while browsing the web without people tracking you!
-GenericName=Web Browser
-Keywords=Internet;WWW;Browser;Web;Explorer
-Exec=/usr/share/zen-browser/zen-bin %u
-Terminal=false
-X-MultipleArgs=false
-Type=Application
-Icon=/usr/share/zen-browser/browser/chrome/icons/default/default128.png
-Categories=Network;WebBrowser;
-MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/vnd.mozilla.xul+xml;application/rss+xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;video/webm;application/x-xpinstall;
-StartupNotify=true
+# Create symbolic link for easier access
+mkdir -p /usr/local/bin
+cat > /usr/local/bin/zen-browser << 'EOF'
+#!/bin/bash
+flatpak run app.zen_browser.zen "$@"
 EOF
+chmod +x /usr/local/bin/zen-browser
 
-rm -rf /tmp/zen-browser.tar.xz /tmp/zen
+echo "Zen Browser installed from Flathub."
 
 ### Install packages
 
@@ -119,7 +105,7 @@ titlebar-font='SF Pro Display Bold 11'
 
 [org.gnome.shell]
 enabled-extensions=['dash-to-dock@micxgx.gmail.com']
-favorite-apps=['zen-browser.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'org.gnome.Software.desktop']
+favorite-apps=['app.zen_browser.zen.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'org.gnome.Software.desktop']
 
 [org.gnome.shell.extensions.dash-to-dock]
 dock-position='BOTTOM'
