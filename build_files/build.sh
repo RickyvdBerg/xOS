@@ -9,12 +9,12 @@ rpm-ostree install gtk-murrine-engine gtk2-engines kvantum qt5ct qt6ct \
 # Install Colloid from source
 curl -L https://github.com/vinceliuice/Colloid-gtk-theme/archive/refs/heads/master.zip -o /tmp/colloid.zip
 unzip /tmp/colloid.zip -d /tmp
-/tmp/Colloid-gtk-theme-master/install.sh -d /usr/share/themes -t all -c dark -l
-/tmp/Colloid-gtk-theme-master/install.sh -d /usr/share/themes -t all -c light -l
-/tmp/Colloid-gtk-theme-master/install.sh -d /usr/share/themes -t all -c dark
-/tmp/Colloid-gtk-theme-master/install.sh -d /usr/share/themes -t all -c light
+/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c dark -l
+/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c light -l
+/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c dark
+/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c light
 
-rm -rf /tmp/Colloid-gtk-theme-master /tmp/colloid.zip
+rm -rf /tmp/Colloid-gtk-theme-main /tmp/colloid.zip
 
 # Install Colloid Icon Theme from source
 echo "Installing Colloid Icon Theme..."
