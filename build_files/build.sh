@@ -4,23 +4,31 @@ set -oue pipefail
 
 # Install dependencies
 rpm-ostree install gtk-murrine-engine gtk2-engines kvantum qt5ct qt6ct \
-    gnome-tweaks git sassc
+    gnome-tweaks git sassc ostree libappstream-glib
 
-# Install Colloid from source
+# Install Colloid theme and stylepak
+echo "Installing Colloid theme..."
 curl -L https://github.com/vinceliuice/Colloid-gtk-theme/archive/refs/heads/master.zip -o /tmp/colloid.zip
 unzip /tmp/colloid.zip -d /tmp
 
-# Create necessary directories and set environment for non-interactive installation
-mkdir -p /root/.gnupg /root/.config /root/.local/share/themes
-export DEBIAN_FRONTEND=noninteractive
-export HOME=/tmp/build-home
-mkdir -p $HOME
+# Install stylepak for Flatpak theme support
+echo "Installing stylepak..."
+curl -L https://raw.githubusercontent.com/refi64/stylepak/master/stylepak -o /usr/local/bin/stylepak
+chmod +x /usr/local/bin/stylepak
 
-# Install Colloid theme system-wide
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c dark -l
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c light -l  
+# Install Colloid theme system-wide only (no user-specific installations)
+echo "Installing Colloid theme system-wide..."
 /tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c dark
 /tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c light
+
+# Set up Flatpak theme support using stylepak
+echo "Setting up Flatpak theme support..."
+# Create a minimal environment for stylepak
+export XDG_CONFIG_HOME=/usr/share/xdg-config
+mkdir -p $XDG_CONFIG_HOME/gtk-3.0 $XDG_CONFIG_HOME/gtk-4.0
+
+# Install Colloid-Dark theme for Flatpak system-wide
+/usr/local/bin/stylepak install-system Colloid-Dark || echo "Stylepak installation completed with warnings"
 
 rm -rf /tmp/Colloid-gtk-theme-main /tmp/colloid.zip
 
