@@ -6,28 +6,62 @@ set -oue pipefail
 rpm-ostree install gtk-murrine-engine gtk2-engines kvantum qt5ct qt6ct \
     gnome-tweaks git sassc gnome-themes-extra
 
-# Install Colloid from source
-echo "Installing Colloid GTK Theme..."
+# Install Colloid GTK Theme Manually
+echo "Installing Colloid GTK Theme Manually..."
 curl -L https://github.com/vinceliuice/Colloid-gtk-theme/archive/refs/heads/master.zip -o /tmp/colloid.zip
 unzip /tmp/colloid.zip -d /tmp
 
-# Define source directories from the unzipped theme
 COLLOID_SRC_ROOT="/tmp/Colloid-gtk-theme-main"
-THEME_SRC_DIR="${COLLOID_SRC_ROOT}/src"
-SASS_SRC_DIR="${THEME_SRC_DIR}/sass"
-MAIN_SRC_DIR="${THEME_SRC_DIR}/main"
+SRC_DIR="${COLLOID_SRC_ROOT}/src" # Used by sourced scripts
+SASS_SRC_DIR="${SRC_DIR}/sass"
+MAIN_SRC_DIR="${SRC_DIR}/main"
 
-# Set environment for non-interactive installation
+# Set environment for non-interactive installation & temporary HOME
 export DEBIAN_FRONTEND=noninteractive
-export HOME=/tmp/build-home # Safety for any script part trying to write to $HOME
+export HOME=/tmp/build-home
 mkdir -p $HOME
-mkdir -p /root/.config /root/.local/share/themes /root/.themes /root/.gnupg # Precaution
+# Precautionary dirs in /root, though HOME is redirected
+mkdir -p /root/.config /root/.local/share/themes /root/.themes /root/.gnupg
+
+# Prepare _tweaks-temp.scss (used by all sassc compilations)
+echo "Preparing temporary SCSS tweak files..."
+cp -f "${SASS_SRC_DIR}/_tweaks.scss" "${SASS_SRC_DIR}/_tweaks-temp.scss"
+
+# Prepare _common-temp.scss for GNOME Shell
+# Assuming latest GNOME version for simplicity in build environment
+GS_VERSION="48-0"
+GNOME_SHELL_SASS_DIR="${SASS_SRC_DIR}/gnome-shell"
+cp -f "${GNOME_SHELL_SASS_DIR}/_common.scss" "${GNOME_SHELL_SASS_DIR}/_common-temp.scss"
+# Modify based on GS_VERSION (as per original install.sh logic)
+sed -i "s/\"40-0\"/\"${GS_VERSION}\"/g" "${GNOME_SHELL_SASS_DIR}/_common-temp.scss" # Affects $widgets-version, $extensions-version initially
+# Correct $extensions-version for newer GNOME
+if [[ "${GS_VERSION}" == "46-0" || "${GS_VERSION}" == "47-0" || "${GS_VERSION}" == "48-0" ]]; then
+  sed -i "s/\"${GS_VERSION}\"/\"46-0\"/g" "${GNOME_SHELL_SASS_DIR}/_common-temp.scss" # Specifically for $extensions-version, making it 46-0
+fi
+# Apply gnome_version tweak if GS_VERSION >= 47
+if [[ "${GS_VERSION}" == "47-0" || "${GS_VERSION}" == "48-0" ]]; then
+  sed -i "s/\$gnome_version: default/\$gnome_version: new/" "${SASS_SRC_DIR}/_tweaks-temp.scss"
+fi
+
+SASSC_OPT="-M -t expanded"
+
+# Source helper functions from the theme's scripts
+echo "Sourcing theme helper scripts..."
+# Ensure SHELL_VERSION is set to avoid unbound variable errors in sourced scripts if they use it
+SHELL_VERSION="${GS_VERSION%%-*}" # e.g., 48 from 48-0
+export SHELL_VERSION
+
+source "${COLLOID_SRC_ROOT}/gtkrc.sh"
+source "${COLLOID_SRC_ROOT}/assets.sh"
 
 # --- Install Colloid-Dark Theme ---
-THEME_NAME_DARK="Colloid-Dark"
-DEST_DIR_DARK="/usr/share/themes/${THEME_NAME_DARK}"
+THEME_NAME_BASE_DARK="Colloid"      # Name used for some asset/gtkrc logic
+VARIANT_NAME_DARK="Colloid-Dark"  # Actual directory and theme name
+DEST_DIR_DARK="/usr/share/themes/${VARIANT_NAME_DARK}"
+COLOR_SUFFIX_FOR_SASS_DARK="-Dark"
+COLOR_PARAM_FOR_HELPERS_DARK="-Dark"
 
-echo "Preparing to install ${THEME_NAME_DARK}..."
+echo "Preparing to install ${VARIANT_NAME_DARK}..."
 mkdir -p "${DEST_DIR_DARK}/gtk-3.0" \
            "${DEST_DIR_DARK}/gtk-4.0" \
            "${DEST_DIR_DARK}/gnome-shell" \
@@ -36,27 +70,40 @@ mkdir -p "${DEST_DIR_DARK}/gtk-3.0" \
            "${DEST_DIR_DARK}/plank" \
            "${DEST_DIR_DARK}/metacity-1"
 
-echo "Setting up SCSS links for ${THEME_NAME_DARK}..."
-ln -sf "${SASS_SRC_DIR}/_colors-dark.scss" "${SASS_SRC_DIR}/_colors.scss"
-ln -sf "${SASS_SRC_DIR}/_drawing-dark.scss" "${SASS_SRC_DIR}/_drawing.scss"
+echo "Compiling SCSS for ${VARIANT_NAME_DARK}..."
+sassc ${SASSC_OPT} "${MAIN_SRC_DIR}/gtk-3.0/gtk${COLOR_SUFFIX_FOR_SASS_DARK}.scss" > "${DEST_DIR_DARK}/gtk-3.0/gtk.css"
+sassc ${SASSC_OPT} "${MAIN_SRC_DIR}/gtk-3.0/gtk-Dark.scss" > "${DEST_DIR_DARK}/gtk-3.0/gtk-dark.css"
+sassc ${SASSC_OPT} "${MAIN_SRC_DIR}/gtk-4.0/gtk${COLOR_SUFFIX_FOR_SASS_DARK}.scss" > "${DEST_DIR_DARK}/gtk-4.0/gtk.css"
+sassc ${SASSC_OPT} "${MAIN_SRC_DIR}/gtk-4.0/gtk-Dark.scss" > "${DEST_DIR_DARK}/gtk-4.0/gtk-dark.css"
+sassc ${SASSC_OPT} "${MAIN_SRC_DIR}/gnome-shell/gnome-shell${COLOR_SUFFIX_FOR_SASS_DARK}.scss" > "${DEST_DIR_DARK}/gnome-shell/gnome-shell.css"
 
-echo "Compiling SCSS for ${THEME_NAME_DARK}..."
-sassc "${MAIN_SRC_DIR}/gtk-3.0/gtk.scss" "${DEST_DIR_DARK}/gtk-3.0/gtk.css"
-sassc "${MAIN_SRC_DIR}/gtk-3.0/gtk-dark.scss" "${DEST_DIR_DARK}/gtk-3.0/gtk-dark.css"
-sassc "${MAIN_SRC_DIR}/gtk-4.0/gtk.scss" "${DEST_DIR_DARK}/gtk-4.0/gtk.css"
-sassc "${MAIN_SRC_DIR}/gtk-4.0/gtk-dark.scss" "${DEST_DIR_DARK}/gtk-4.0/gtk-dark.css"
-sassc "${MAIN_SRC_DIR}/gnome-shell/gnome-shell.scss" "${DEST_DIR_DARK}/gnome-shell/gnome-shell.css"
+echo "Installing assets and gtkrc for ${VARIANT_NAME_DARK}..."
+make_assets "/usr/share/themes" "${THEME_NAME_BASE_DARK}" "" "${COLOR_PARAM_FOR_HELPERS_DARK}" "" "" ""
+make_gtkrc "/usr/share/themes" "${THEME_NAME_BASE_DARK}" "" "${COLOR_PARAM_FOR_HELPERS_DARK}" "" "" ""
 
-echo "Installing assets for ${THEME_NAME_DARK}..."
-bash "${COLLOID_SRC_ROOT}/assets.sh" -d "/usr/share/themes" -n "${THEME_NAME_DARK}" -c dark
-echo "Installing gtkrc for ${THEME_NAME_DARK}..."
-bash "${COLLOID_SRC_ROOT}/gtkrc.sh" -d "/usr/share/themes" -n "${THEME_NAME_DARK}" -c dark
+echo "Generating index.theme for ${VARIANT_NAME_DARK}..."
+cat > "${DEST_DIR_DARK}/index.theme" << EOF
+[Desktop Entry]
+Type=X-GNOME-Metatheme
+Name=${VARIANT_NAME_DARK}
+Comment=A Flat Gtk+ theme based on Elegant Design
+Encoding=UTF-8
+
+[X-GNOME-Metatheme]
+GtkTheme=${VARIANT_NAME_DARK}
+MetacityTheme=${VARIANT_NAME_DARK}
+IconTheme=Colloid${COLOR_PARAM_FOR_HELPERS_DARK}
+CursorTheme=Colloid-cursors
+ButtonLayout=close,minimize,maximize:menu
+EOF
 
 # --- Install Colloid Light Theme (as 'Colloid') ---
-THEME_NAME_LIGHT="Colloid"
-DEST_DIR_LIGHT="/usr/share/themes/${THEME_NAME_LIGHT}"
+VARIANT_NAME_LIGHT="Colloid"
+DEST_DIR_LIGHT="/usr/share/themes/${VARIANT_NAME_LIGHT}"
+SCSS_SUFFIX_LIGHT="-Light" # Use gtk-Light.scss, gnome-shell-Light.scss
+COLOR_PARAM_FOR_HELPERS_LIGHT="" # For default/light, the color param to helpers is empty
 
-echo "Preparing to install ${THEME_NAME_LIGHT}..."
+echo "Preparing to install ${VARIANT_NAME_LIGHT}..."
 mkdir -p "${DEST_DIR_LIGHT}/gtk-3.0" \
            "${DEST_DIR_LIGHT}/gtk-4.0" \
            "${DEST_DIR_LIGHT}/gnome-shell" \
@@ -65,19 +112,32 @@ mkdir -p "${DEST_DIR_LIGHT}/gtk-3.0" \
            "${DEST_DIR_LIGHT}/plank" \
            "${DEST_DIR_LIGHT}/metacity-1"
 
-echo "Setting up SCSS links for ${THEME_NAME_LIGHT}..."
-ln -sf "${SASS_SRC_DIR}/_colors-light.scss" "${SASS_SRC_DIR}/_colors.scss"
-ln -sf "${SASS_SRC_DIR}/_drawing-light.scss" "${SASS_SRC_DIR}/_drawing.scss"
+echo "Compiling SCSS for ${VARIANT_NAME_LIGHT}..."
+sassc ${SASSC_OPT} "${MAIN_SRC_DIR}/gtk-3.0/gtk${SCSS_SUFFIX_LIGHT}.scss" > "${DEST_DIR_LIGHT}/gtk-3.0/gtk.css"
+sassc ${SASSC_OPT} "${MAIN_SRC_DIR}/gtk-3.0/gtk-Dark.scss" > "${DEST_DIR_LIGHT}/gtk-3.0/gtk-dark.css" # Still provide for apps requesting dark
+sassc ${SASSC_OPT} "${MAIN_SRC_DIR}/gtk-4.0/gtk${SCSS_SUFFIX_LIGHT}.scss" > "${DEST_DIR_LIGHT}/gtk-4.0/gtk.css"
+sassc ${SASSC_OPT} "${MAIN_SRC_DIR}/gtk-4.0/gtk-Dark.scss" > "${DEST_DIR_LIGHT}/gtk-4.0/gtk-dark.css" # Still provide for apps requesting dark
+sassc ${SASSC_OPT} "${MAIN_SRC_DIR}/gnome-shell/gnome-shell${SCSS_SUFFIX_LIGHT}.scss" > "${DEST_DIR_LIGHT}/gnome-shell/gnome-shell.css"
 
-echo "Compiling SCSS for ${THEME_NAME_LIGHT}..."
-sassc "${MAIN_SRC_DIR}/gtk-3.0/gtk.scss" "${DEST_DIR_LIGHT}/gtk-3.0/gtk.css"
-sassc "${MAIN_SRC_DIR}/gtk-4.0/gtk.scss" "${DEST_DIR_LIGHT}/gtk-4.0/gtk.css"
-sassc "${MAIN_SRC_DIR}/gnome-shell/gnome-shell.scss" "${DEST_DIR_LIGHT}/gnome-shell/gnome-shell.css"
+echo "Installing assets and gtkrc for ${VARIANT_NAME_LIGHT}..."
+make_assets "/usr/share/themes" "${VARIANT_NAME_LIGHT}" "" "${COLOR_PARAM_FOR_HELPERS_LIGHT}" "" "" ""
+make_gtkrc "/usr/share/themes" "${VARIANT_NAME_LIGHT}" "" "${COLOR_PARAM_FOR_HELPERS_LIGHT}" "" "" ""
 
-echo "Installing assets for ${THEME_NAME_LIGHT}..."
-bash "${COLLOID_SRC_ROOT}/assets.sh" -d "/usr/share/themes" -n "${THEME_NAME_LIGHT}" -c default
-echo "Installing gtkrc for ${THEME_NAME_LIGHT}..."
-bash "${COLLOID_SRC_ROOT}/gtkrc.sh" -d "/usr/share/themes" -n "${THEME_NAME_LIGHT}" -c default
+echo "Generating index.theme for ${VARIANT_NAME_LIGHT}..."
+cat > "${DEST_DIR_LIGHT}/index.theme" << EOF
+[Desktop Entry]
+Type=X-GNOME-Metatheme
+Name=${VARIANT_NAME_LIGHT}
+Comment=A Flat Gtk+ theme based on Elegant Design
+Encoding=UTF-8
+
+[X-GNOME-Metatheme]
+GtkTheme=${VARIANT_NAME_LIGHT}
+MetacityTheme=${VARIANT_NAME_LIGHT}
+IconTheme=Colloid # No color suffix for default light icon theme name
+CursorTheme=Colloid-cursors
+ButtonLayout=close,minimize,maximize:menu
+EOF
 
 # Clean up
 rm -rf "${COLLOID_SRC_ROOT}" /tmp/colloid.zip $HOME
