@@ -17,11 +17,17 @@ export HOME=/tmp/build-home # Safety for any script part trying to write to $HOM
 mkdir -p $HOME
 mkdir -p /root/.gnupg # For GPG if its errors reappear
 
+echo "Enabling script tracing for Colloid theme installation..."
+set -x
+
 # Install Colloid theme system-wide for dark and light variants
 echo "Installing Colloid Dark theme system-wide..."
 /tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -n Colloid -t gtk3 gtk4 gnome-shell -c dark
 echo "Installing Colloid Light theme system-wide..."
 /tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -n Colloid -t gtk3 gtk4 gnome-shell -c default
+
+echo "Disabling script tracing..."
+set +x
 
 # Clean up
 rm -rf /tmp/Colloid-gtk-theme-main /tmp/colloid.zip $HOME
