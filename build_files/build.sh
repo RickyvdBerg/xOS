@@ -1,6 +1,17 @@
 #!/bin/bash
 
-set -ouex pipefail
+set -oue pipefail
+
+# Install dependencies
+rpm-ostree install gtk-murrine-engine gtk2-engines kvantum qt5ct qt6ct
+
+# Install Colloid from source
+curl -L https://github.com/vinceliuice/Colloid-gtk-theme/archive/refs/heads/master.zip -o /tmp/colloid.zip
+unzip /tmp/colloid.zip -d /tmp
+/tmp/Colloid-gtk-theme-master/install.sh -d /usr/share/themes -t all -c dark -l
+/tmp/Colloid-gtk-theme-master/install.sh -d /usr/share/themes -t all -c light -l
+/tmp/Colloid-gtk-theme-master/install.sh -d /usr/share/themes -t all -c dark
+/tmp/Colloid-gtk-theme-master/install.sh -d /usr/share/themes -t all -c light
 
 ### Install packages
 
