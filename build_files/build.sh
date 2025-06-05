@@ -19,9 +19,9 @@ mkdir -p /root/.gnupg # For GPG if its errors reappear
 
 # Install Colloid theme system-wide for dark and light variants
 echo "Installing Colloid Dark theme system-wide..."
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -n Colloid -c dark
+/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -n Colloid -t gtk3 gtk4 gnome-shell -c dark
 echo "Installing Colloid Light theme system-wide..."
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -n Colloid -c default
+/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -n Colloid -t gtk3 gtk4 gnome-shell -c default
 
 # Clean up
 rm -rf /tmp/Colloid-gtk-theme-main /tmp/colloid.zip $HOME
