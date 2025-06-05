@@ -48,6 +48,8 @@ rm -rf /tmp/sf-fonts.zip /tmp/San-Francisco-Pro-Fonts-master
 
 # Install Zen Browser from Flathub
 echo "Installing Zen Browser from Flathub..."
+# Add Flathub remote if not already configured
+flatpak remote-add --if-not-exists --system flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 # Install Zen Browser as a system-wide Flatpak
 flatpak install --system -y flathub app.zen_browser.zen
 
