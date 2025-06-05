@@ -28,6 +28,8 @@ rm -rf /tmp/Colloid-icon-theme
 # Install Dash to Panel GNOME Shell Extension
 echo "Installing Dash to Panel GNOME Shell Extension..."
 if git clone --depth 1 https://github.com/home-sweet-gnome/dash-to-panel.git /tmp/dash-to-panel; then
+    # Create necessary directory structure to avoid mkdir errors
+    mkdir -p /root/.local/share/gnome-shell/extensions
     (cd /tmp/dash-to-panel && make install INSTALL_PATH=/usr/share/gnome-shell/extensions GLIB_SCHEMAS_INSTALL_DIR=/usr/share/glib-2.0/schemas)
     echo "Dash to Panel installed."
 else
