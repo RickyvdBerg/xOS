@@ -11,12 +11,14 @@ curl -L https://github.com/vinceliuice/Colloid-gtk-theme/archive/refs/heads/mast
 unzip /tmp/colloid.zip -d /tmp
 
 # Create necessary directories and set environment for non-interactive installation
-mkdir -p /root/.gnupg
+mkdir -p /root/.gnupg /root/.config /root/.local/share/themes
 export DEBIAN_FRONTEND=noninteractive
+export HOME=/tmp/build-home
+mkdir -p $HOME
 
-# Install Colloid theme
+# Install Colloid theme system-wide
 /tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c dark -l
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c light -l
+/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c light -l  
 /tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c dark
 /tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c light
 
