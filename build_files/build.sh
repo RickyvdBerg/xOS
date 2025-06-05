@@ -11,17 +11,21 @@ echo "Installing Colloid GTK Theme..."
 curl -L https://github.com/vinceliuice/Colloid-gtk-theme/archive/refs/heads/master.zip -o /tmp/colloid.zip
 unzip /tmp/colloid.zip -d /tmp
 
+# Add verbosity to the theme's install.sh script
+THEME_INSTALL_SCRIPT="/tmp/Colloid-gtk-theme-main/install.sh"
+sed -i '1a set -x' "$THEME_INSTALL_SCRIPT"
+
 # Set environment for non-interactive installation
 export DEBIAN_FRONTEND=noninteractive
 export HOME=/tmp/build-home # Safety for any script part trying to write to $HOME
 mkdir -p $HOME
 mkdir -p /root/.config /root/.local/share/themes /root/.themes /root/.gnupg # For GPG and other potential user-dir needs if HOME is ignored
 
-# Install Colloid theme system-wide for dark and light variants, with internal script tracing
-echo "Installing Colloid Dark theme system-wide (with script tracing)..."
-bash -x /tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -n Colloid -t gtk3 gtk4 gnome-shell -c dark
-echo "Installing Colloid Light theme system-wide (with script tracing)..."
-bash -x /tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -n Colloid -t gtk3 gtk4 gnome-shell -c default
+# Install Colloid theme system-wide for dark and light variants
+echo "Installing Colloid Dark theme system-wide (with internal script tracing enabled)..."
+"$THEME_INSTALL_SCRIPT" -d /usr/share/themes -n Colloid -t gtk3 gtk4 gnome-shell -c dark
+echo "Installing Colloid Light theme system-wide (with internal script tracing enabled)..."
+"$THEME_INSTALL_SCRIPT" -d /usr/share/themes -n Colloid -t gtk3 gtk4 gnome-shell -c default
 
 # Clean up
 rm -rf /tmp/Colloid-gtk-theme-main /tmp/colloid.zip $HOME
@@ -32,7 +36,8 @@ if git clone --depth 1 https://github.com/vinceliuice/Colloid-icon-theme.git /tm
     (cd /tmp/Colloid-icon-theme && ./install.sh -d /usr/share/icons)
     echo "Colloid Icon Theme installed."
 else
-    echo "ERROR: Failed to clone Colloid Icon Theme repository."
+    echo "ERROR: Failed to clone Colloid Icon Theme repository. Exiting."
+    exit 1
 fi
 rm -rf /tmp/Colloid-icon-theme
 
@@ -42,7 +47,8 @@ if git clone --depth 1 https://github.com/home-sweet-gnome/dash-to-panel.git /tm
     (cd /tmp/dash-to-panel && make install INSTALL_PATH=/usr/share/gnome-shell/extensions GLIB_SCHEMAS_INSTALL_DIR=/usr/share/glib-2.0/schemas)
     echo "Dash to Panel installed."
 else
-    echo "ERROR: Failed to clone Dash to Panel repository."
+    echo "ERROR: Failed to clone Dash to Panel repository. Exiting."
+    exit 1
 fi
 rm -rf /tmp/dash-to-panel
 
