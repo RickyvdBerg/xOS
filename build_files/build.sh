@@ -7,11 +7,10 @@ echo "=== Building Avios - Professional Linux Desktop ==="
 # Install essential dependencies
 rpm-ostree install \
     gtk-murrine-engine gtk2-engines \
-    qt5ct qt6ct kvantum \
+    kvantum \
     gnome-tweaks git sassc \
     curl wget unzip \
     gnome-themes-extra \
-    papirus-icon-theme
 
 # Install WhiteSur GTK Theme (macOS Big Sur style)
 echo "Installing WhiteSur Theme..."
@@ -23,9 +22,13 @@ cd /tmp/WhiteSur-gtk-theme-master
 # Make script executable and install with minimal options to avoid issues
 chmod +x install.sh
 
-# Install both variants with basic options (avoid complex flags that might fail)
-./install.sh -d /usr/share/themes -c Light || echo "Light theme install had issues, continuing..."
-./install.sh -d /usr/share/themes -c Dark || echo "Dark theme install had issues, continuing..."
+# Install both variants with macOS-style window controls
+./install.sh -d /usr/share/themes -c Light -t all -N glassy --round || echo "Light theme install had issues, continuing..."
+./install.sh -d /usr/share/themes -c Dark -t all -N glassy --round || echo "Dark theme install had issues, continuing..."
+
+# Install WhiteSur Shell Theme for GNOME Shell
+echo "Installing WhiteSur Shell Theme..."
+./install.sh -l -d /usr/share/themes -c Dark -t all || echo "Shell theme install had issues, continuing..."
 
 # Install WhiteSur icon theme
 echo "Installing WhiteSur Icon Theme..."
@@ -96,12 +99,27 @@ cp /tmp/San-Francisco-Pro-Fonts-master/*.otf /usr/share/fonts/sf-pro/
 fc-cache -f -v
 rm -rf /tmp/sf-fonts.zip /tmp/San-Francisco-Pro-Fonts-master
 
+# Install GNOME Shell Extensions
+echo "Installing GNOME Shell extensions..."
+
+# Install User Themes extension (essential for shell theming)
+mkdir -p /usr/share/gnome-shell/extensions/user-theme@gnome-shell-extensions.gcampax.github.com
+curl -L "https://github.com/GNOME/gnome-shell-extensions/releases/download/45.1/user-theme@gnome-shell-extensions.gcampax.github.com.zip" -o /tmp/user-theme.zip
+unzip -q -o /tmp/user-theme.zip -d /usr/share/gnome-shell/extensions/user-theme@gnome-shell-extensions.gcampax.github.com
+rm -f /tmp/user-theme.zip
+
 # Install Dash to Dock GNOME Shell Extension
-echo "Installing Dash to Dock extension..."
 mkdir -p /usr/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com
 curl -L "https://github.com/micheleg/dash-to-dock/releases/download/extensions.gnome.org-v100/dash-to-dock@micxgx.gmail.com.zip" -o /tmp/dash-to-dock.zip
 unzip -q -o /tmp/dash-to-dock.zip -d /usr/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com
 rm -f /tmp/dash-to-dock.zip
+
+# Install WhiteSur Dash to Dock Theme
+echo "Installing WhiteSur Dash to Dock theme..."
+curl -L https://github.com/vinceliuice/WhiteSur-gtk-theme/raw/master/src/other/dash-to-dock/whitesur.css -o /tmp/whitesur-dash.css
+mkdir -p /usr/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com/themes
+cp /tmp/whitesur-dash.css /usr/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com/themes/
+rm -f /tmp/whitesur-dash.css
 
 # Install Zen Browser from Flathub
 echo "Installing Zen Browser..."
@@ -123,8 +141,9 @@ else
     echo "Skipping Zen Browser wrapper creation"
 fi
 
-# Remove Firefox if present
+# Remove Firefox and related packages
 rpm-ostree override remove firefox firefox-langpacks || true
+rpm-ostree override remove mozilla-filesystem || true
 
 # Enable essential services
 systemctl enable podman.socket
@@ -160,10 +179,14 @@ color-scheme='prefer-dark'
 [org/gnome/desktop/wm/preferences]
 titlebar-font='SF Pro Display Bold 11'
 button-layout='close,minimize,maximize:'
+theme='WhiteSur-Dark'
 
 [org/gnome/shell]
-enabled-extensions=['dash-to-dock@micxgx.gmail.com']
-favorite-apps=['app.zen_browser.zen.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'org.gnome.Software.desktop', 'com.valvesoftware.Steam.desktop']
+enabled-extensions=['dash-to-dock@micxgx.gmail.com', 'user-theme@gnome-shell-extensions.gcampax.github.com']
+favorite-apps=['app.zen_browser.zen.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'org.gnome.Software.desktop']
+
+[org/gnome/shell/extensions/user-theme]
+name='WhiteSur-Dark'
 
 [org/gnome/shell/extensions/dash-to-dock]
 dock-position='bottom'
@@ -175,11 +198,19 @@ dash-max-icon-size=48
 show-favorites=true
 show-running=true
 show-show-apps-button=true
-apply-custom-theme=true
-transparency-mode='fixed'
-background-opacity=0.8
-custom-background-color=true
-background-color='rgb(30,30,30)'
+apply-custom-theme=false
+custom-theme-shrink=true
+custom-theme-running-dots=true
+custom-theme-customize-running-dots=true
+running-indicator-style='METRO'
+transparency-mode='DYNAMIC'
+background-opacity=0.3
+custom-background-color=false
+animate-show-apps=true
+animation-time=0.2
+hide-delay=0.2
+show-delay=0.25
+pressure-threshold=100.0
 height-fraction=0.9
 
 [org/gnome/mutter]
@@ -237,15 +268,27 @@ gsettings set org.gnome.desktop.interface document-font-name 'SF Pro Display 11'
 gsettings set org.gnome.desktop.interface monospace-font-name 'SF Mono 10'
 gsettings set org.gnome.desktop.wm.preferences titlebar-font 'SF Pro Display Bold 11'
 
-# Enable and configure Dash to Dock
-gsettings set org.gnome.shell enabled-extensions "['dash-to-dock@micxgx.gmail.com']"
+# Enable extensions and configure
+gsettings set org.gnome.shell enabled-extensions "['dash-to-dock@micxgx.gmail.com', 'user-theme@gnome-shell-extensions.gcampax.github.com']"
+
+# Configure User Themes extension for shell theming
+gsettings set org.gnome.shell.extensions.user-theme name 'WhiteSur-Dark'
+
+# Configure Dash to Dock with WhiteSur theme
 gsettings set org.gnome.shell.extensions.dash-to-dock dock-fixed true
-gsettings set org.gnome.shell.extensions.dash-to-dock apply-custom-theme true
-gsettings set org.gnome.shell.extensions.dash-to-dock transparency-mode 'fixed'
-gsettings set org.gnome.shell.extensions.dash-to-dock background-opacity 0.8
+gsettings set org.gnome.shell.extensions.dash-to-dock apply-custom-theme false
+gsettings set org.gnome.shell.extensions.dash-to-dock custom-theme-shrink true
+gsettings set org.gnome.shell.extensions.dash-to-dock custom-theme-running-dots true
+gsettings set org.gnome.shell.extensions.dash-to-dock custom-theme-customize-running-dots true
+gsettings set org.gnome.shell.extensions.dash-to-dock running-indicator-style 'METRO'
+gsettings set org.gnome.shell.extensions.dash-to-dock transparency-mode 'DYNAMIC'
+gsettings set org.gnome.shell.extensions.dash-to-dock background-opacity 0.3
+gsettings set org.gnome.shell.extensions.dash-to-dock custom-background-color false
+gsettings set org.gnome.shell.extensions.dash-to-dock animate-show-apps true
+gsettings set org.gnome.shell.extensions.dash-to-dock animation-time 0.2
 
 # Set favorite applications
-gsettings set org.gnome.shell favorite-apps "['app.zen_browser.zen.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'org.gnome.Software.desktop', 'com.valvesoftware.Steam.desktop']"
+gsettings set org.gnome.shell favorite-apps "['app.zen_browser.zen.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'org.gnome.Software.desktop']"
 
 # Set Qt theme environment
 mkdir -p "$HOME/.config/environment.d"
@@ -253,7 +296,15 @@ cat > "$HOME/.config/environment.d/qt-theme.conf" << 'QTEOF'
 QT_QPA_PLATFORMTHEME=qt5ct
 QTEOF
 
-echo "Avios setup completed successfully"
+# Apply window manager theme for traffic light buttons
+gsettings set org.gnome.desktop.wm.preferences theme 'WhiteSur-Dark'
+
+# Restart GNOME Shell to apply all theme changes (if not on Wayland)
+if [ "$XDG_SESSION_TYPE" = "x11" ]; then
+    nohup bash -c 'sleep 3 && killall -3 gnome-shell' >/dev/null 2>&1 &
+fi
+
+echo "Avios setup completed successfully - theme changes will be visible after next login"
 EOF
 
 chmod +x /usr/share/avios/first-boot-setup.sh
@@ -283,12 +334,16 @@ case "${1:-}" in
         gsettings set org.gnome.desktop.interface gtk-theme 'WhiteSur-Light'
         gsettings set org.gnome.desktop.interface icon-theme 'WhiteSur-light'
         gsettings set org.gnome.desktop.interface color-scheme 'default'
+        gsettings set org.gnome.desktop.wm.preferences theme 'WhiteSur-Light'
+        gsettings set org.gnome.shell.extensions.user-theme name 'WhiteSur-Light'
         echo "Switched to Avios Light theme"
         ;;
     "dark")
         gsettings set org.gnome.desktop.interface gtk-theme 'WhiteSur-Dark'
         gsettings set org.gnome.desktop.interface icon-theme 'WhiteSur-dark'
         gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+        gsettings set org.gnome.desktop.wm.preferences theme 'WhiteSur-Dark'
+        gsettings set org.gnome.shell.extensions.user-theme name 'WhiteSur-Dark'
         echo "Switched to Avios Dark theme"
         ;;
     *)
