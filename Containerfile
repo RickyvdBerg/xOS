@@ -6,15 +6,15 @@ ARG BASE_IMAGE="ghcr.io/ublue-os/${SOURCE_IMAGE}"
 FROM scratch AS ctx
 COPY build_files /build_files
 
-## bluefin image section
+## Avios Professional Desktop image section
 FROM ${BASE_IMAGE}:${FEDORA_MAJOR_VERSION} AS base
 
 ARG AKMODS_FLAVOR="coreos-stable"
 ARG BASE_IMAGE_NAME="silverblue"
 ARG FEDORA_MAJOR_VERSION="42"
-ARG IMAGE_NAME="cox"
-ARG IMAGE_VENDOR="ublue-os"
-ARG KERNEL="6.10.10-200.fc40.x86_64"
+ARG IMAGE_NAME="avios"
+ARG IMAGE_VENDOR="RickyvdBerg"
+ARG KERNEL="6.12.7-200.fc42.x86_64"
 ARG SHA_HEAD_SHORT="dedbeef"
 ARG UBLUE_IMAGE_TAG="stable"
 ARG VERSION=""

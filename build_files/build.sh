@@ -2,88 +2,83 @@
 
 set -oue pipefail
 
-# Install dependencies
-rpm-ostree install gtk-murrine-engine gtk2-engines kvantum qt5ct qt6ct \
-    gnome-tweaks git gnome-themes-extra sassc curl wget unzip
+echo "=== Building Avios - Professional Linux Desktop ==="
 
-# Install Colloid from source with manual libadwaita setup
-curl -L https://github.com/vinceliuice/Colloid-gtk-theme/archive/refs/heads/master.zip -o /tmp/colloid.zip
-unzip /tmp/colloid.zip -d /tmp
+# Install essential dependencies
+rpm-ostree install \
+    gtk-murrine-engine gtk2-engines \
+    qt5ct qt6ct kvantum \
+    gnome-tweaks git sassc \
+    curl wget unzip \
+    gnome-themes-extra \
+    papirus-icon-theme
 
-# Install themes normally (without -l flag to avoid /root directory issues)
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c dark
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c light
+# Install WhiteSur GTK Theme (macOS Big Sur style)
+echo "Installing WhiteSur Theme..."
+curl -L https://github.com/vinceliuice/WhiteSur-gtk-theme/archive/refs/heads/master.zip -o /tmp/whitesur.zip
+unzip -q /tmp/whitesur.zip -d /tmp
 
-# Manually setup libadwaita theming for GTK4 apps (replicating what -l flag does)
-echo "Setting up libadwaita theming manually..."
+cd /tmp/WhiteSur-gtk-theme-master
 
-# Create system-wide gtk-4.0 config directory
-mkdir -p /etc/gtk-4.0
+# Install both light and dark variants with full support
+./install.sh -d /usr/share/themes -t all -c Light -N glassy --normal --round
+./install.sh -d /usr/share/themes -t all -c Dark -N glassy --normal --round
 
-# Copy assets for libadwaita (matching the install script logic)
-cp -r /tmp/Colloid-gtk-theme-main/src/assets/gtk/assets /etc/gtk-4.0/
-cp -r /tmp/Colloid-gtk-theme-main/src/assets/gtk/symbolics/*.svg /etc/gtk-4.0/assets/
+# Install WhiteSur icon theme
+echo "Installing WhiteSur Icon Theme..."
+curl -L https://github.com/vinceliuice/WhiteSur-icon-theme/archive/refs/heads/master.zip -o /tmp/whitesur-icons.zip
+unzip -q /tmp/whitesur-icons.zip -d /tmp
+cd /tmp/WhiteSur-icon-theme-master
+./install.sh -d /usr/share/icons -t default -a
 
-# Prepare tweaks (this is what theme_tweaks() does)
-cd /tmp/Colloid-gtk-theme-main
-cp -rf "src/sass/_tweaks.scss" "src/sass/_tweaks-temp.scss"
+# Install WhiteSur cursor theme
+echo "Installing WhiteSur Cursors..."
+curl -L https://github.com/vinceliuice/WhiteSur-cursors/archive/refs/heads/master.zip -o /tmp/whitesur-cursors.zip
+unzip -q /tmp/whitesur-cursors.zip -d /tmp
+cd /tmp/WhiteSur-cursors-master
+./install.sh -d /usr/share/icons
 
-# Set GNOME Shell version for compatibility
-SHELL_VERSION="$(gnome-shell --version 2>/dev/null | cut -d ' ' -f 3 | cut -d . -f -1)" || SHELL_VERSION="48"
-if [[ "${SHELL_VERSION:-}" -ge "47" ]]; then
-    sed -i "/\gnome_version/s/default/new/" "src/sass/_tweaks-temp.scss"
-fi
+# Setup Qt theming with Kvantum
+echo "Setting up Qt theming..."
+mkdir -p /usr/share/Kvantum
+curl -L https://github.com/vinceliuice/WhiteSur-kde/archive/refs/heads/master.zip -o /tmp/whitesur-kvantum.zip
+unzip -q /tmp/whitesur-kvantum.zip -d /tmp
+cp -r /tmp/WhiteSur-kde-master/Kvantum/* /usr/share/Kvantum/
 
-# Compile libadwaita themes for both Light and Dark variants
-# This matches the conditional logic in libadwaita_theme() function
-sassc -M -t expanded "src/main/libadwaita/libadwaita-Light.scss" "/etc/gtk-4.0/gtk.css"
-sassc -M -t expanded "src/main/libadwaita/libadwaita-Dark.scss" "/etc/gtk-4.0/gtk-dark.css"
+# Create system-wide Qt configuration
+mkdir -p /etc/xdg/qt5ct
+mkdir -p /etc/xdg/qt6ct
 
-# Create user config template directory 
-mkdir -p /usr/share/gtk-4.0
-cp -r /etc/gtk-4.0/* /usr/share/gtk-4.0/
+cat > /etc/xdg/qt5ct/qt5ct.conf << 'EOF'
+[Appearance]
+style=kvantum-dark
+color_scheme_path=/usr/share/qt5ct/colors/darker.conf
+custom_palette=false
+icon_theme=WhiteSur-dark
+standard_dialogs=default
 
-# Also create skeleton config for new users
-mkdir -p /etc/skel/.config/gtk-4.0
-ln -sf /etc/gtk-4.0/assets /etc/skel/.config/gtk-4.0/assets
-ln -sf /etc/gtk-4.0/gtk.css /etc/skel/.config/gtk-4.0/gtk.css
-ln -sf /etc/gtk-4.0/gtk-dark.css /etc/skel/.config/gtk-4.0/gtk-dark.css
+[Fonts]
+fixed="SF Mono,10,-1,5,50,0,0,0,0,0"
+general="SF Pro Display,10,-1,5,50,0,0,0,0,0"
+EOF
 
-rm -rf /tmp/Colloid-gtk-theme-main /tmp/colloid.zip
+cat > /etc/xdg/qt6ct/qt6ct.conf << 'EOF'
+[Appearance]
+style=kvantum-dark
+color_scheme_path=/usr/share/qt6ct/colors/darker.conf
+custom_palette=false
+icon_theme=WhiteSur-dark
+standard_dialogs=default
 
-# Install Colloid Icon Theme from source
-echo "Installing Colloid Icon Theme..."
-if git clone --depth 1 https://github.com/vinceliuice/Colloid-icon-theme.git /tmp/Colloid-icon-theme; then
-    (cd /tmp/Colloid-icon-theme && ./install.sh -d /usr/share/icons)
-    echo "Colloid Icon Theme installed."
-else
-    echo "ERROR: Failed to clone Colloid Icon Theme repository."
-fi
-rm -rf /tmp/Colloid-icon-theme
+[Fonts]
+fixed="SF Mono,10,-1,5,50,0,0,0,0,0"
+general="SF Pro Display,10,-1,5,50,0,0,0,0,0"
+EOF
 
-# Install Colloid Cursor Theme
-echo "Installing Colloid Cursor Theme..."
-if git clone --depth 1 https://github.com/vinceliuice/Colloid-icon-theme.git /tmp/Colloid-cursors; then
-    (cd /tmp/Colloid-cursors && ./install.sh -c -d /usr/share/icons)
-    echo "Colloid Cursor Theme installed."
-else
-    echo "ERROR: Failed to clone Colloid Cursor Theme repository."
-fi
-rm -rf /tmp/Colloid-cursors
+# Clean up theme downloads
+rm -rf /tmp/WhiteSur-* /tmp/whitesur*.zip
 
-# Install Dash to Dock GNOME Shell Extension
-echo "Installing Dash to Dock GNOME Shell Extension..."
-# Download pre-built release from GitHub
-curl -L "https://github.com/micheleg/dash-to-dock/releases/download/extensions.gnome.org-v100/dash-to-dock@micxgx.gmail.com.zip" -o /tmp/dash-to-dock.zip
-# Remove any existing extension directory and create fresh
-rm -rf /usr/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com
-mkdir -p /usr/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com
-# Extract with overwrite flag to avoid prompts
-unzip -q -o /tmp/dash-to-dock.zip -d /usr/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com
-rm -f /tmp/dash-to-dock.zip
-echo "Dash to Dock installed."
-
-# Install San Francisco Pro fonts (macOS-like)
+# Install San Francisco Pro fonts
 echo "Installing San Francisco Pro fonts..."
 mkdir -p /usr/share/fonts/sf-pro
 curl -L "https://github.com/sahibjotsaggu/San-Francisco-Pro-Fonts/archive/master.zip" -o /tmp/sf-fonts.zip
@@ -92,122 +87,100 @@ cp /tmp/San-Francisco-Pro-Fonts-master/*.otf /usr/share/fonts/sf-pro/
 fc-cache -f -v
 rm -rf /tmp/sf-fonts.zip /tmp/San-Francisco-Pro-Fonts-master
 
+# Install Dash to Dock GNOME Shell Extension
+echo "Installing Dash to Dock extension..."
+mkdir -p /usr/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com
+curl -L "https://github.com/micheleg/dash-to-dock/releases/download/extensions.gnome.org-v100/dash-to-dock@micxgx.gmail.com.zip" -o /tmp/dash-to-dock.zip
+unzip -q -o /tmp/dash-to-dock.zip -d /usr/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com
+rm -f /tmp/dash-to-dock.zip
+
 # Install Zen Browser from Flathub
-echo "Installing Zen Browser from Flathub..."
-# Add Flathub remote if not already configured
+echo "Installing Zen Browser..."
 flatpak remote-add --if-not-exists --system flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-# Install Zen Browser as a system-wide Flatpak
 flatpak install --system -y flathub app.zen_browser.zen
 
-# Create symbolic link for easier access
-# Create the wrapper script (skip if /usr/local/bin creation fails)
-cat > /usr/local/bin/zen-browser << 'EOF' || true
+# Create Zen Browser wrapper
+mkdir -p /usr/local/bin
+cat > /usr/local/bin/zen-browser << 'EOF'
 #!/bin/bash
-flatpak run app.zen_browser.zen "$@"
+exec flatpak run app.zen_browser.zen "$@"
 EOF
-chmod +x /usr/local/bin/zen-browser 2>/dev/null || true
+chmod +x /usr/local/bin/zen-browser
 
-echo "Zen Browser installed from Flathub."
+# Remove Firefox if present
+rpm-ostree override remove firefox firefox-langpacks || true
 
-### Install packages
-
-# Packages can be installed from any enabled yum repo on the image.
-# RPMfusion repos are available by default in ublue main images
-# List of rpmfusion packages can be found here:
-# https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/39/x86_64/repoview/index.html&protocol=https&redirect=1
-
-# this installs a package from fedora repos
-# dnf5 install -y tmux 
-
-# Use a COPR Example:
-#
-# dnf5 -y copr enable ublue-os/staging
-# dnf5 -y install package
-# Disable COPRs so they don't end up enabled on the final image:
-# dnf5 -y copr disable ublue-os/staging
-
-#### Example for enabling a System Unit File
-
+# Enable essential services
 systemctl enable podman.socket
 
-
-### Create system-wide dconf defaults (Bluefin-style approach)
-echo "Creating system-wide dconf defaults..."
-
-# Create dconf system database directory
+# Create Avios system configuration
+echo "Creating Avios system defaults..."
 mkdir -p /etc/dconf/db/local.d
 mkdir -p /etc/dconf/profile
+mkdir -p /etc/dconf/db/local.d/locks
 
-# Create user profile to use system defaults
+# Create dconf user profile
 cat > /etc/dconf/profile/user << 'EOF'
 user-db:user
 system-db:local
 EOF
 
-# Create system defaults database
-cat > /etc/dconf/db/local.d/00-xos-defaults << 'EOF'
-# xOS System Defaults
+# Create Avios system defaults
+cat > /etc/dconf/db/local.d/00-avios-defaults << 'EOF'
+# Avios Professional Desktop Defaults
 
 [org/gnome/desktop/interface]
-gtk-theme='Colloid-Dark'
-icon-theme='Colloid-Dark'
-cursor-theme='Colloid-cursors'
+gtk-theme='WhiteSur-Dark'
+icon-theme='WhiteSur-dark'
+cursor-theme='WhiteSur-cursors'
 font-name='SF Pro Display 11'
 document-font-name='SF Pro Display 11'
 monospace-font-name='SF Mono 10'
 clock-show-weekday=true
 show-battery-percentage=true
 enable-animations=true
+color-scheme='prefer-dark'
 
 [org/gnome/desktop/wm/preferences]
 titlebar-font='SF Pro Display Bold 11'
-
-[org/gnome/desktop/sound]
-theme-name='ocean'
+button-layout='close,minimize,maximize:'
 
 [org/gnome/shell]
 enabled-extensions=['dash-to-dock@micxgx.gmail.com']
-favorite-apps=['app.zen_browser.zen.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'org.gnome.Software.desktop']
+favorite-apps=['app.zen_browser.zen.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'org.gnome.Software.desktop', 'com.valvesoftware.Steam.desktop']
 
 [org/gnome/shell/extensions/dash-to-dock]
-dock-position='BOTTOM'
-dock-fixed=false
+dock-position='bottom'
+dock-fixed=true
 intellihide=false
 autohide=false
 extend-height=false
-height-fraction=0.9
 dash-max-icon-size=48
-icon-size-fixed=false
 show-favorites=true
 show-running=true
-show-apps-at-top=false
 show-show-apps-button=true
-animate-show-apps=true
-click-action='CYCLE'
-scroll-action='CYCLE_WINDOWS'
-running-indicator-style='DOTS'
 apply-custom-theme=true
-custom-theme-shrink=false
-transparency-mode='ADAPTIVE'
+transparency-mode='fixed'
 background-opacity=0.8
-custom-background-color=false
-hot-keys=true
-shortcut=['<Super>q']
-
-[org/gnome/desktop/background]
-picture-options='zoom'
-primary-color='#000000'
-
-[org/gnome/desktop/screensaver]
-picture-options='zoom'
-primary-color='#000000'
+custom-background-color=true
+background-color='rgb(30,30,30)'
+height-fraction=0.9
 
 [org/gnome/mutter]
 center-new-windows=true
 dynamic-workspaces=true
+experimental-features=['scale-monitor-framebuffer']
 
-[org/gnome/shell/app-switcher]
-current-workspace-only=false
+[org/gnome/desktop/sound]
+theme-name='ocean'
+
+[org/gnome/desktop/background]
+picture-options='zoom'
+primary-color='#1e1e1e'
+
+[org/gnome/desktop/screensaver]
+picture-options='zoom'
+primary-color='#1e1e1e'
 
 [org/gnome/desktop/wm/keybindings]
 close=['<Super>q']
@@ -219,44 +192,28 @@ home=['<Super>e']
 www=['<Super>b']
 EOF
 
-# Create locks directory and lock certain settings
-mkdir -p /etc/dconf/db/local.d/locks
-cat > /etc/dconf/db/local.d/locks/00-xos-locks << 'EOF'
-# Lock theme settings
+# Lock critical settings
+cat > /etc/dconf/db/local.d/locks/00-avios-locks << 'EOF'
+/org/gnome/shell/enabled-extensions
 /org/gnome/desktop/interface/gtk-theme
 /org/gnome/desktop/interface/icon-theme
 /org/gnome/desktop/interface/cursor-theme
-/org/gnome/shell/enabled-extensions
 EOF
 
 # Update dconf database
 dconf update
 
-echo "System dconf defaults created and applied."
-
-# Create first-boot setup script (Bluefin-style)
-mkdir -p /usr/share/xos
-cat > /usr/share/xos/first-boot-setup.sh << 'EOF'
+# Create Avios first-boot setup
+mkdir -p /usr/share/avios
+cat > /usr/share/avios/first-boot-setup.sh << 'EOF'
 #!/bin/bash
-# xOS First Boot Setup Script
+# Avios First Boot Setup
 
-# Enable and configure Dash to Dock extension
-gsettings set org.gnome.shell enabled-extensions "['dash-to-dock@micxgx.gmail.com']"
-
-# Apply theme settings for current user
-gsettings set org.gnome.desktop.interface gtk-theme 'Colloid-Dark'
-gsettings set org.gnome.desktop.interface icon-theme 'Colloid-Dark'
-gsettings set org.gnome.desktop.interface cursor-theme 'Colloid-cursors'
-
-# Configure Dash to Dock to be always visible
-gsettings set org.gnome.shell.extensions.dash-to-dock dock-fixed false
-gsettings set org.gnome.shell.extensions.dash-to-dock intellihide false
-gsettings set org.gnome.shell.extensions.dash-to-dock autohide false
-gsettings set org.gnome.shell.extensions.dash-to-dock apply-custom-theme true
-gsettings set org.gnome.shell.extensions.dash-to-dock transparency-mode 'ADAPTIVE'
-
-# Set favorite applications
-gsettings set org.gnome.shell favorite-apps "['app.zen_browser.zen.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'org.gnome.Software.desktop']"
+# Ensure themes are applied for current user
+gsettings set org.gnome.desktop.interface gtk-theme 'WhiteSur-Dark'
+gsettings set org.gnome.desktop.interface icon-theme 'WhiteSur-dark'
+gsettings set org.gnome.desktop.interface cursor-theme 'WhiteSur-cursors'
+gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 
 # Apply fonts
 gsettings set org.gnome.desktop.interface font-name 'SF Pro Display 11'
@@ -264,21 +221,66 @@ gsettings set org.gnome.desktop.interface document-font-name 'SF Pro Display 11'
 gsettings set org.gnome.desktop.interface monospace-font-name 'SF Mono 10'
 gsettings set org.gnome.desktop.wm.preferences titlebar-font 'SF Pro Display Bold 11'
 
-echo "xOS first boot setup completed"
+# Enable and configure Dash to Dock
+gsettings set org.gnome.shell enabled-extensions "['dash-to-dock@micxgx.gmail.com']"
+gsettings set org.gnome.shell.extensions.dash-to-dock dock-fixed true
+gsettings set org.gnome.shell.extensions.dash-to-dock apply-custom-theme true
+gsettings set org.gnome.shell.extensions.dash-to-dock transparency-mode 'fixed'
+gsettings set org.gnome.shell.extensions.dash-to-dock background-opacity 0.8
+
+# Set favorite applications
+gsettings set org.gnome.shell favorite-apps "['app.zen_browser.zen.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'org.gnome.Software.desktop', 'com.valvesoftware.Steam.desktop']"
+
+# Set Qt theme environment
+mkdir -p "$HOME/.config/environment.d"
+cat > "$HOME/.config/environment.d/qt-theme.conf" << 'QTEOF'
+QT_QPA_PLATFORMTHEME=qt5ct
+QTEOF
+
+echo "Avios setup completed successfully"
 EOF
 
-chmod +x /usr/share/xos/first-boot-setup.sh
+chmod +x /usr/share/avios/first-boot-setup.sh
 
-# Create autostart entry for first boot setup
+# Create autostart entry
 mkdir -p /etc/xdg/autostart
-cat > /etc/xdg/autostart/xos-first-boot.desktop << 'EOF'
+cat > /etc/xdg/autostart/avios-first-boot.desktop << 'EOF'
 [Desktop Entry]
 Type=Application
-Name=xOS First Boot Setup
-Exec=/usr/share/xos/first-boot-setup.sh
+Name=Avios First Boot Setup
+Exec=/usr/share/avios/first-boot-setup.sh
 Hidden=false
 NoDisplay=true
 X-GNOME-Autostart-enabled=true
-X-GNOME-Autostart-Delay=3
+X-GNOME-Autostart-Delay=2
 OnlyShowIn=GNOME;
 EOF
+
+# Create theme switcher script for users
+cat > /usr/local/bin/avios-theme-switcher << 'EOF'
+#!/bin/bash
+# Avios Theme Switcher - Switch between Light and Dark modes
+
+case "${1:-}" in
+    "light")
+        gsettings set org.gnome.desktop.interface gtk-theme 'WhiteSur-Light'
+        gsettings set org.gnome.desktop.interface icon-theme 'WhiteSur-light'
+        gsettings set org.gnome.desktop.interface color-scheme 'default'
+        echo "Switched to Avios Light theme"
+        ;;
+    "dark")
+        gsettings set org.gnome.desktop.interface gtk-theme 'WhiteSur-Dark'
+        gsettings set org.gnome.desktop.interface icon-theme 'WhiteSur-dark'
+        gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+        echo "Switched to Avios Dark theme"
+        ;;
+    *)
+        echo "Usage: avios-theme-switcher [light|dark]"
+        echo "Current theme: $(gsettings get org.gnome.desktop.interface gtk-theme)"
+        ;;
+esac
+EOF
+
+chmod +x /usr/local/bin/avios-theme-switcher
+
+echo "=== Avios build completed successfully! ==="

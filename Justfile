@@ -1,5 +1,5 @@
-export repo_organization := env("GITHUB_REPOSITORY_OWNER", "yourname")
-export image_name := env("IMAGE_NAME", "yourimage")
+export repo_organization := env("GITHUB_REPOSITORY_OWNER", "RickyvdBerg")
+export image_name := env("IMAGE_NAME", "avios")
 export centos_version := env("CENTOS_VERSION", "stream10")
 export fedora_version := env("CENTOS_VERSION", "41")
 export default_tag := env("DEFAULT_TAG", "latest")
@@ -74,7 +74,7 @@ sudoif command *args:
 # This Justfile recipe builds a container image using Podman.
 #
 # Arguments:
-#   $target_image - The tag you want to apply to the image (default: aurora).
+#   $target_image - The tag you want to apply to the image (default: avios).
 #   $tag - The tag for the image (default: lts).
 #   $dx - Enable DX (default: "0").
 #   $hwe - Enable HWE (default: "0").
@@ -96,9 +96,9 @@ sudoif command *args:
 # just build $target_image $tag $dx $hwe $gdx
 #
 # Example usage:
-#   just build aurora lts 1 0 1
+#   just build avios lts 1 0 1
 #
-# This will build an image 'aurora:lts' with DX and GDX enabled.
+# This will build an image 'avios:lts' with DX and GDX enabled.
 #
 
 # Build the image using the specified parameters
