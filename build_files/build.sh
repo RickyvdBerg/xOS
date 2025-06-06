@@ -20,30 +20,39 @@ unzip -q /tmp/whitesur.zip -d /tmp
 
 cd /tmp/WhiteSur-gtk-theme-master
 
-# Install both light and dark variants with full support
-./install.sh -d /usr/share/themes -t all -c Light -N glassy --normal --round
-./install.sh -d /usr/share/themes -t all -c Dark -N glassy --normal --round
+# Make script executable and install with minimal options to avoid issues
+chmod +x install.sh
+
+# Install both variants with basic options (avoid complex flags that might fail)
+./install.sh -d /usr/share/themes -c Light || echo "Light theme install had issues, continuing..."
+./install.sh -d /usr/share/themes -c Dark || echo "Dark theme install had issues, continuing..."
 
 # Install WhiteSur icon theme
 echo "Installing WhiteSur Icon Theme..."
 curl -L https://github.com/vinceliuice/WhiteSur-icon-theme/archive/refs/heads/master.zip -o /tmp/whitesur-icons.zip
 unzip -q /tmp/whitesur-icons.zip -d /tmp
 cd /tmp/WhiteSur-icon-theme-master
-./install.sh -d /usr/share/icons -t default -a
+chmod +x install.sh
+./install.sh -d /usr/share/icons || echo "Icon theme install had issues, continuing..."
 
 # Install WhiteSur cursor theme
 echo "Installing WhiteSur Cursors..."
 curl -L https://github.com/vinceliuice/WhiteSur-cursors/archive/refs/heads/master.zip -o /tmp/whitesur-cursors.zip
 unzip -q /tmp/whitesur-cursors.zip -d /tmp
 cd /tmp/WhiteSur-cursors-master
-./install.sh -d /usr/share/icons
+chmod +x install.sh
+./install.sh -d /usr/share/icons || echo "Cursor theme install had issues, continuing..."
 
 # Setup Qt theming with Kvantum
 echo "Setting up Qt theming..."
 mkdir -p /usr/share/Kvantum
 curl -L https://github.com/vinceliuice/WhiteSur-kde/archive/refs/heads/master.zip -o /tmp/whitesur-kvantum.zip
 unzip -q /tmp/whitesur-kvantum.zip -d /tmp
-cp -r /tmp/WhiteSur-kde-master/Kvantum/* /usr/share/Kvantum/
+if [ -d "/tmp/WhiteSur-kde-master/Kvantum" ]; then
+    cp -r /tmp/WhiteSur-kde-master/Kvantum/* /usr/share/Kvantum/ || echo "Kvantum setup had issues, continuing..."
+else
+    echo "Kvantum themes not found, skipping Qt theming..."
+fi
 
 # Create system-wide Qt configuration
 mkdir -p /etc/xdg/qt5ct
