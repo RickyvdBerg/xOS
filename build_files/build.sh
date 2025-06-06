@@ -33,7 +33,7 @@ echo "Installing GNOME Shell extensions..."
 
 # Install Dash to Panel (modern bottom panel like macOS)
 mkdir -p /usr/share/gnome-shell/extensions/dash-to-panel@jderose9.github.com
-curl -L "https://github.com/home-sweet-gnome/dash-to-panel/releases/latest/download/dash-to-panel@jderose9.github.com.zip" -o /tmp/dash-to-panel.zip
+curl -L "https://extensions.gnome.org/extension-data/dash-to-paneljderose9.github.com.v68.shell-extension.zip" -o /tmp/dash-to-panel.zip
 unzip -q -o /tmp/dash-to-panel.zip -d /usr/share/gnome-shell/extensions/dash-to-panel@jderose9.github.com
 rm -f /tmp/dash-to-panel.zip
 
