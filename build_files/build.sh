@@ -109,12 +109,19 @@ flatpak remote-add --if-not-exists --system flathub https://dl.flathub.org/repo/
 flatpak install --system -y flathub app.zen_browser.zen
 
 # Create Zen Browser wrapper
-mkdir -p /usr/local/bin
-cat > /usr/local/bin/zen-browser << 'EOF'
+if [ ! -d "/usr/local/bin" ]; then
+    mkdir -p /usr/local/bin || echo "Could not create /usr/local/bin, skipping wrapper..."
+fi
+
+if [ -d "/usr/local/bin" ]; then
+    cat > /usr/local/bin/zen-browser << 'EOF' || echo "Could not create zen-browser wrapper"
 #!/bin/bash
 exec flatpak run app.zen_browser.zen "$@"
 EOF
-chmod +x /usr/local/bin/zen-browser
+    chmod +x /usr/local/bin/zen-browser 2>/dev/null || echo "Could not make zen-browser executable"
+else
+    echo "Skipping Zen Browser wrapper creation"
+fi
 
 # Remove Firefox if present
 rpm-ostree override remove firefox firefox-langpacks || true
@@ -266,7 +273,8 @@ OnlyShowIn=GNOME;
 EOF
 
 # Create theme switcher script for users
-cat > /usr/local/bin/avios-theme-switcher << 'EOF'
+if [ -d "/usr/local/bin" ]; then
+    cat > /usr/local/bin/avios-theme-switcher << 'EOF' || echo "Could not create theme switcher"
 #!/bin/bash
 # Avios Theme Switcher - Switch between Light and Dark modes
 
@@ -289,7 +297,9 @@ case "${1:-}" in
         ;;
 esac
 EOF
-
-chmod +x /usr/local/bin/avios-theme-switcher
+    chmod +x /usr/local/bin/avios-theme-switcher 2>/dev/null || echo "Could not make theme switcher executable"
+else
+    echo "Skipping theme switcher creation"
+fi
 
 echo "=== Avios build completed successfully! ==="
