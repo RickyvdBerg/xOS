@@ -104,7 +104,7 @@ echo "Installing GNOME Shell extensions..."
 
 # Install User Themes extension (essential for shell theming)
 mkdir -p /usr/share/gnome-shell/extensions/user-theme@gnome-shell-extensions.gcampax.github.com
-curl -L "https://github.com/GNOME/gnome-shell-extensions/releases/download/45.1/user-theme@gnome-shell-extensions.gcampax.github.com.zip" -o /tmp/user-theme.zip
+curl -L "https://extensions.gnome.org/extension-data/user-themegnome-shell-extensions.gcampax.github.com.v64.shell-extension.zip" -o /tmp/user-theme.zip
 unzip -q -o /tmp/user-theme.zip -d /usr/share/gnome-shell/extensions/user-theme@gnome-shell-extensions.gcampax.github.com
 rm -f /tmp/user-theme.zip
 

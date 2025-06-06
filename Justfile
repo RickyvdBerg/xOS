@@ -66,8 +66,8 @@ sudoif command *args:
         elif [[ "$(command -v sudo)" ]]; then
             /usr/bin/sudo "$@" || exit 1
         else
-            exit 1
-        fi
+        exit 1
+    fi
     }
     sudoif {{ command }} {{ args }}
 
@@ -167,8 +167,8 @@ _rootful_load_image $target_image=image_name $tag=default_tag:
             # If the image ID is not found or different from user, copy the image from user podman to root podman
             COPYTMP=$(mktemp -p "${PWD}" -d -t _build_podman_scp.XXXXXXXXXX)
             just sudoif TMPDIR=${COPYTMP} podman image scp ${UID}@localhost::"${target_image}:${tag}" root@localhost::"${target_image}:${tag}"
-            rm -rf "${COPYTMP}"
-        fi
+        rm -rf "${COPYTMP}"
+    fi
     else
         # If the image is not found, pull it from the repository
         just sudoif podman pull "${target_image}:${tag}"
@@ -193,7 +193,7 @@ _build-bib $target_image $tag $type $config: (_rootful_load_image target_image t
 
     if [[ $target_image == localhost/* ]]; then
         args+=" --local"
-    fi
+        fi
 
     BUILDTMP=$(mktemp -p "${PWD}" -d -t _build-bib.XXXXXXXXXX)
 
@@ -330,8 +330,8 @@ lint:
     # Check if shellcheck is installed
     if ! command -v shellcheck &> /dev/null; then
         echo "shellcheck could not be found. Please install it."
-        exit 1
-    fi
+            exit 1
+        fi
     # Run shellcheck on all Bash scripts
     /usr/bin/find . -iname "*.sh" -type f -exec shellcheck "{}" ';'
 
