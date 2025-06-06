@@ -37,17 +37,6 @@ curl -L "https://extensions.gnome.org/extension-data/dash-to-paneljderose9.githu
 unzip -q -o /tmp/dash-to-panel.zip -d /usr/share/gnome-shell/extensions/dash-to-panel@jderose9.github.com
 rm -f /tmp/dash-to-panel.zip
 
-# Install AppIndicator Support (for better tray icons)
-mkdir -p /usr/share/gnome-shell/extensions/appindicatorsupport@rgcjonas.gmail.com
-curl -L "https://github.com/ubuntu/gnome-shell-extension-appindicator/releases/latest/download/appindicator-support@ubuntu.com.zip" -o /tmp/appindicator.zip
-unzip -q -o /tmp/appindicator.zip -d /usr/share/gnome-shell/extensions/appindicatorsupport@rgcjonas.gmail.com
-rm -f /tmp/appindicator.zip
-
-# Install Just Perfection (to fine-tune GNOME behavior)
-mkdir -p /usr/share/gnome-shell/extensions/just-perfection-desktop@just-perfection
-curl -L "https://github.com/just-perfection-gnome/just-perfection-desktop/releases/latest/download/just-perfection-desktop@just-perfection.zip" -o /tmp/just-perfection.zip
-unzip -q -o /tmp/just-perfection.zip -d /usr/share/gnome-shell/extensions/just-perfection-desktop@just-perfection
-rm -f /tmp/just-perfection.zip
 
 # Install Zen Browser from Flathub
 echo "Installing Zen Browser..."
@@ -107,7 +96,7 @@ titlebar-font='SF Pro Display Bold 11'
 button-layout='appmenu:minimize,maximize,close'
 
 [org/gnome/shell]
-enabled-extensions=['dash-to-panel@jderose9.github.com', 'appindicatorsupport@rgcjonas.gmail.com', 'just-perfection-desktop@just-perfection']
+enabled-extensions=['dash-to-panel@jderose9.github.com']
 favorite-apps=['app.zen_browser.zen.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'org.gnome.Software.desktop', 'org.gnome.Settings.desktop']
 
 [org/gnome/shell/extensions/dash-to-panel]
@@ -133,26 +122,7 @@ stockgs-keep-dash=false
 stockgs-keep-top-panel=true
 panel-element-positions='{"0":[{"element":"showAppsButton","visible":true,"position":"stackedTL"},{"element":"activitiesButton","visible":false,"position":"stackedTL"},{"element":"leftBox","visible":true,"position":"stackedTL"},{"element":"taskbar","visible":true,"position":"stackedTL"},{"element":"centerBox","visible":true,"position":"stackedBR"},{"element":"rightBox","visible":true,"position":"stackedBR"},{"element":"dateMenu","visible":true,"position":"stackedBR"},{"element":"systemMenu","visible":true,"position":"stackedBR"},{"element":"desktopButton","visible":true,"position":"stackedBR"}]}'
 
-[org/gnome/shell/extensions/just-perfection]
-accessibility-menu=false
-activities-button=false
-app-menu=false
-clock-menu-position=1
-dash=false
-osd=true
-panel=true
-panel-in-overview=true
-ripple-box=false
-search=true
-show-apps-button=true
-startup-status=0
-theme=false
-top-panel=true
-window-demands-attention-focus=false
-window-picker-icon=true
-workspace=true
-workspace-popup=false
-workspaces-in-app-grid=false
+
 
 [org/gnome/mutter]
 center-new-windows=true
@@ -206,7 +176,7 @@ gsettings set org.gnome.desktop.wm.preferences titlebar-font 'SF Pro Display Bol
 gsettings set org.gnome.desktop.interface icon-theme 'Colloid-dark'
 
 # Enable extensions
-gsettings set org.gnome.shell enabled-extensions "['dash-to-panel@jderose9.github.com', 'appindicatorsupport@rgcjonas.gmail.com', 'just-perfection-desktop@just-perfection']"
+gsettings set org.gnome.shell enabled-extensions "['dash-to-panel@jderose9.github.com']"
 
 # Configure Dash to Panel for modern bottom bar
 gsettings set org.gnome.shell.extensions.dash-to-panel panel-positions '{"0":"BOTTOM"}'
@@ -222,10 +192,7 @@ gsettings set org.gnome.shell.extensions.dash-to-panel show-activities-button fa
 gsettings set org.gnome.shell.extensions.dash-to-panel show-appmenu false
 gsettings set org.gnome.shell.extensions.dash-to-panel stockgs-keep-dash false
 
-# Configure Just Perfection for cleaner experience
-gsettings set org.gnome.shell.extensions.just-perfection activities-button false
-gsettings set org.gnome.shell.extensions.just-perfection app-menu false
-gsettings set org.gnome.shell.extensions.just-perfection dash false
+
 
 # Set favorite applications
 gsettings set org.gnome.shell favorite-apps "['app.zen_browser.zen.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Console.desktop', 'org.gnome.TextEditor.desktop', 'org.gnome.Software.desktop', 'org.gnome.Settings.desktop']"
