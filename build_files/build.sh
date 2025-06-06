@@ -14,22 +14,40 @@ unzip /tmp/colloid.zip -d /tmp
 /tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c dark
 /tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c light
 
-# Manually setup libadwaita theming for GTK4 apps
+# Manually setup libadwaita theming for GTK4 apps (replicating what -l flag does)
 echo "Setting up libadwaita theming manually..."
+
 # Create system-wide gtk-4.0 config directory
 mkdir -p /etc/gtk-4.0
 
-# Copy assets for libadwaita
+# Copy assets for libadwaita (matching the install script logic)
 cp -r /tmp/Colloid-gtk-theme-main/src/assets/gtk/assets /etc/gtk-4.0/
 cp -r /tmp/Colloid-gtk-theme-main/src/assets/gtk/symbolics/*.svg /etc/gtk-4.0/assets/
 
-# Compile and install libadwaita CSS (using Dark theme as default)
+# Prepare tweaks (this is what theme_tweaks() does)
 cd /tmp/Colloid-gtk-theme-main
-sassc -M -t expanded src/main/libadwaita/libadwaita-Dark.scss /etc/gtk-4.0/gtk.css
+cp -rf "src/sass/_tweaks.scss" "src/sass/_tweaks-temp.scss"
 
-# Also create user config template that systems can use
+# Set GNOME Shell version for compatibility
+SHELL_VERSION="$(gnome-shell --version 2>/dev/null | cut -d ' ' -f 3 | cut -d . -f -1)" || SHELL_VERSION="48"
+if [[ "${SHELL_VERSION:-}" -ge "47" ]]; then
+    sed -i "/\gnome_version/s/default/new/" "src/sass/_tweaks-temp.scss"
+fi
+
+# Compile libadwaita themes for both Light and Dark variants
+# This matches the conditional logic in libadwaita_theme() function
+sassc -M -t expanded "src/main/libadwaita/libadwaita-Light.scss" "/etc/gtk-4.0/gtk.css"
+sassc -M -t expanded "src/main/libadwaita/libadwaita-Dark.scss" "/etc/gtk-4.0/gtk-dark.css"
+
+# Create user config template directory 
 mkdir -p /usr/share/gtk-4.0
 cp -r /etc/gtk-4.0/* /usr/share/gtk-4.0/
+
+# Also create skeleton config for new users
+mkdir -p /etc/skel/.config/gtk-4.0
+ln -sf /etc/gtk-4.0/assets /etc/skel/.config/gtk-4.0/assets
+ln -sf /etc/gtk-4.0/gtk.css /etc/skel/.config/gtk-4.0/gtk.css
+ln -sf /etc/gtk-4.0/gtk-dark.css /etc/skel/.config/gtk-4.0/gtk-dark.css
 
 rm -rf /tmp/Colloid-gtk-theme-main /tmp/colloid.zip
 
