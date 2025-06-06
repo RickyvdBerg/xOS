@@ -1,6 +1,6 @@
-ARG BASE_IMAGE_NAME="silverblue-nvidia"
+ARG BASE_IMAGE_NAME="silverblue"
 ARG FEDORA_MAJOR_VERSION="41"
-ARG SOURCE_IMAGE="${BASE_IMAGE_NAME}-main"
+ARG SOURCE_IMAGE="${BASE_IMAGE_NAME}-nvidia"
 ARG BASE_IMAGE="ghcr.io/ublue-os/${SOURCE_IMAGE}"
 
 FROM scratch AS ctx
