@@ -22,9 +22,10 @@ cd /tmp/WhiteSur-gtk-theme-master
 # Make script executable and install with minimal options to avoid issues
 chmod +x install.sh
 
-# Install both variants with macOS-style window controls
-./install.sh -d /usr/share/themes -c Light -t all -N glassy --round || echo "Light theme install had issues, continuing..."
-./install.sh -d /usr/share/themes -c Dark -t all -N glassy --round || echo "Dark theme install had issues, continuing..."
+# Install WhiteSur Theme for libadwaita support (GNOME default apps)
+echo "Installing WhiteSur Theme with libadwaita support..."
+./install.sh -l -c light || echo "Light libadwaita theme install had issues, continuing..."
+./install.sh -l -c dark || echo "Dark libadwaita theme install had issues, continuing..."
 
 # Install WhiteSur Shell Theme for GNOME Shell
 echo "Installing WhiteSur Shell Theme..."
