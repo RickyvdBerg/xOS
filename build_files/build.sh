@@ -6,14 +6,30 @@ set -oue pipefail
 rpm-ostree install gtk-murrine-engine gtk2-engines kvantum qt5ct qt6ct \
     gnome-tweaks git gnome-themes-extra sassc curl wget unzip
 
-# Install Colloid from source with libadwaita support for traffic lights
+# Install Colloid from source with manual libadwaita setup
 curl -L https://github.com/vinceliuice/Colloid-gtk-theme/archive/refs/heads/master.zip -o /tmp/colloid.zip
 unzip /tmp/colloid.zip -d /tmp
-# Create libadwaita config directory to avoid mkdir errors
-mkdir -p /root/.config/gtk-4.0
-# Install themes with libadwaita support for proper GTK4 app theming (like Settings app)
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c dark -l
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c light -l
+
+# Install themes normally (without -l flag to avoid /root directory issues)
+/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c dark
+/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c light
+
+# Manually setup libadwaita theming for GTK4 apps
+echo "Setting up libadwaita theming manually..."
+# Create system-wide gtk-4.0 config directory
+mkdir -p /etc/gtk-4.0
+
+# Copy assets for libadwaita
+cp -r /tmp/Colloid-gtk-theme-main/src/assets/gtk/assets /etc/gtk-4.0/
+cp -r /tmp/Colloid-gtk-theme-main/src/assets/gtk/symbolics/*.svg /etc/gtk-4.0/assets/
+
+# Compile and install libadwaita CSS (using Dark theme as default)
+cd /tmp/Colloid-gtk-theme-main
+sassc -M -t expanded src/main/libadwaita/libadwaita-Dark.scss /etc/gtk-4.0/gtk.css
+
+# Also create user config template that systems can use
+mkdir -p /usr/share/gtk-4.0
+cp -r /etc/gtk-4.0/* /usr/share/gtk-4.0/
 
 rm -rf /tmp/Colloid-gtk-theme-main /tmp/colloid.zip
 
