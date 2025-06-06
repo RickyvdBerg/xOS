@@ -19,13 +19,14 @@ cp /tmp/San-Francisco-Pro-Fonts-master/*.otf /usr/share/fonts/sf-pro/
 fc-cache -f -v
 rm -rf /tmp/sf-fonts.zip /tmp/San-Francisco-Pro-Fonts-master
 
-# Install Papirus icon theme (clean, modern icons that work well with GNOME)
-echo "Installing Papirus icon theme..."
-curl -L "https://github.com/PapirusDev/papirus-icon-theme/archive/master.zip" -o /tmp/papirus.zip
-unzip -q /tmp/papirus.zip -d /tmp
+# Install Colloid icon theme (modern, clean icons that complement the Colloid theme)
+echo "Installing Colloid icon theme..."
+git clone https://github.com/vinceliuice/Colloid-icon-theme.git /tmp/colloid-icons
 mkdir -p /usr/share/icons
-cp -r /tmp/papirus-icon-theme-master/Papirus* /usr/share/icons/
-rm -rf /tmp/papirus.zip /tmp/papirus-icon-theme-master
+cd /tmp/colloid-icons
+./install.sh -d /usr/share/icons
+cd /
+rm -rf /tmp/colloid-icons
 
 # Install GNOME Shell Extensions
 echo "Installing GNOME Shell extensions..."
@@ -92,7 +93,7 @@ cat > /etc/dconf/db/local.d/00-avios-defaults << 'EOF'
 # Avios Professional Desktop Defaults
 
 [org/gnome/desktop/interface]
-icon-theme='Papirus-Dark'
+icon-theme='Colloid-dark'
 font-name='SF Pro Display 11'
 document-font-name='SF Pro Display 11'
 monospace-font-name='SF Mono 10'
@@ -202,7 +203,7 @@ gsettings set org.gnome.desktop.interface monospace-font-name 'SF Mono 10'
 gsettings set org.gnome.desktop.wm.preferences titlebar-font 'SF Pro Display Bold 11'
 
 # Set icon theme
-gsettings set org.gnome.desktop.interface icon-theme 'Papirus-Dark'
+gsettings set org.gnome.desktop.interface icon-theme 'Colloid-dark'
 
 # Enable extensions
 gsettings set org.gnome.shell enabled-extensions "['dash-to-panel@jderose9.github.com', 'appindicatorsupport@rgcjonas.gmail.com', 'just-perfection-desktop@just-perfection']"
