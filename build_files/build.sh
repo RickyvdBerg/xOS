@@ -6,12 +6,14 @@ set -oue pipefail
 rpm-ostree install gtk-murrine-engine gtk2-engines kvantum qt5ct qt6ct \
     gnome-tweaks git gnome-themes-extra sassc curl wget unzip
 
-# Install Colloid from source
+# Install Colloid from source with libadwaita support for traffic lights
 curl -L https://github.com/vinceliuice/Colloid-gtk-theme/archive/refs/heads/master.zip -o /tmp/colloid.zip
 unzip /tmp/colloid.zip -d /tmp
-# Install themes without libadwaita integration to avoid /root directory issues
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c dark
-/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c light
+# Create libadwaita config directory to avoid mkdir errors
+mkdir -p /root/.config/gtk-4.0
+# Install themes with libadwaita support for proper GTK4 app theming (like Settings app)
+/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c dark -l
+/tmp/Colloid-gtk-theme-main/install.sh -d /usr/share/themes -t all -c light -l
 
 rm -rf /tmp/Colloid-gtk-theme-main /tmp/colloid.zip
 
@@ -102,8 +104,11 @@ show-battery-percentage=true
 enable-animations=true
 
 [org.gnome.desktop.wm.preferences]
-button-layout='close,minimize,maximize:'
 titlebar-font='SF Pro Display Bold 11'
+theme='Colloid-Dark'
+
+[org.gnome.settings-daemon.plugins.xsettings]
+overrides={'Gtk/Theme': <'Colloid-Dark'>}
 
 [org.gnome.shell]
 enabled-extensions=['dash-to-dock@micxgx.gmail.com']
