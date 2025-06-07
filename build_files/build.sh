@@ -124,14 +124,16 @@ titlebar-font='SF Pro Display Bold 11'
 button-layout='appmenu:minimize,maximize,close'
 
 [org/gnome/shell]
-enabled-extensions=['dash-to-panel@jderose9.github.com','appindicatorsupport@rgcjonas.gmail.com','just-perfection-desktop@just-perfection']
-favorite-apps=['app.zen_browser.zen.desktop','org.gnome.Nautilus.desktop','org.gnome.Console.desktop','org.gnome.TextEditor.desktop','org.gnome.Software.desktop','org.gnome.Settings.desktop']
+enabled-extensions=['dash-to-panel@jderose9.github.com']
+favorite-apps=['io.github.zen_browser.zen.desktop','org.gnome.Nautilus.desktop','org.gnome.Console.desktop','org.gnome.TextEditor.desktop','org.gnome.Software.desktop','org.gnome.Settings.desktop']
 
 [org/gnome/shell/extensions/dash-to-panel]
 # ── Positioning ───────────────────────────────────────────────────────────
 panel-positions='{"0":"BOTTOM"}'
-panel-lengths='{"0":100}'              # full‑width bar
-panel-sizes='{"0":48}'                # height = 48px (screenshot)
+# full‑width bar
+panel-lengths='{"0":100}'
+# height = 48px (screenshot)
+panel-sizes='{"0":48}'
 
 # ── Element order to match mock‑up ────────────────────────────────────────
 panel-element-positions='{"0":[{"element":"showAppsButton","visible":true,"position":"stackedTL"},{"element":"activitiesButton","visible":false,"position":"stackedTL"},{"element":"leftBox","visible":true,"position":"stackedTL"},{"element":"taskbar","visible":true,"position":"stackedTL"},{"element":"centerBox","visible":true,"position":"center"},{"element":"rightBox","visible":true,"position":"stackedBR"}]}'
