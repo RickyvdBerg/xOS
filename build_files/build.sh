@@ -53,7 +53,7 @@ fc-cache -f
 ###############################################################################
 printf '==> Installing Colloid icon theme\n' >&2
 git clone --depth=1 https://github.com/vinceliuice/Colloid-icon-theme.git /tmp/colloid
-/tmp/colloid/install.sh -d /usr/share/icons -s default -t default -c dark
+/tmp/colloid/install.sh -d /usr/share/icons -s default -t default
 rm -rf /tmp/colloid
 
 ###############################################################################
