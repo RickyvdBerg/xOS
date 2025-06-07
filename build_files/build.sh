@@ -174,6 +174,6 @@ dconf update
 # 9. Enable useful system services
 ###############################################################################
 printf '==> Enabling podman.socket\n' >&2
-systemctl enable --now podman.socket
+systemctl enable podman.socket
 
 printf '\n==> Avios build finished successfully\n' >&2
