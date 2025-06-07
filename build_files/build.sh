@@ -14,7 +14,6 @@ printf '\n==> Avios build start (uBlue)\n'  >&2
 # 0. Variables – keep all remote assets in one place for easy updates
 ###############################################################################
 FONT_URL="https://github.com/sahibjotsaggu/San-Francisco-Pro-Fonts/archive/master.zip"
-DTPANEL_URL="https://extensions.gnome.org/extension-data/dash-to-paneljderose9.github.com.v68.shell-extension.zip"
 
 ###############################################################################
 # 1. Core RPM packages (dnf5 works inside the build container)
@@ -57,14 +56,13 @@ git clone --depth=1 https://github.com/vinceliuice/Colloid-icon-theme.git /tmp/c
 rm -rf /tmp/colloid
 
 ###############################################################################
-# 5. Dash‑to‑Panel (system‑wide so it loads at GDM too)
+# 5. GNOME Shell extensions from Fedora repos (version-compatible)
 ###############################################################################
-printf '==> Installing Dash‑to‑Panel extension\n' >&2
-EXTDIR=/usr/share/gnome-shell/extensions/dash-to-panel@jderose9.github.com
-install -d "$EXTDIR"
-curl -Ls "$DTPANEL_URL" -o /tmp/dtp.zip
-unzip -q -o /tmp/dtp.zip -d "$EXTDIR"
-rm -f /tmp/dtp.zip
+printf '==> Installing GNOME Shell extensions\n' >&2
+dnf5 install -y \
+    gnome-shell-extension-dash-to-panel \
+    gnome-shell-extension-appindicator \
+    gnome-shell-extension-just-perfection
 
 ###############################################################################
 # 6. Helper wrapper so `zen-browser` works like a native binary
